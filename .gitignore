@@ -117,3 +117,128 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+
+# ----------------------------------------------------
+# Arquivos e pastas do Python
+# ----------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ----------------------------------------------------
+# Virtual environment
+# ----------------------------------------------------
+venv/
+env/
+.venv/
+.env/
+
+# ----------------------------------------------------
+# Arquivos de banco de dados SQLite
+# ----------------------------------------------------
+db.sqlite3
+
+# ----------------------------------------------------
+# Django specific
+# ----------------------------------------------------
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.sqlite3-journal
+*.coverage
+*.mo
+*.swp
+*.swo
+
+# Pasta de mídia (uploads de usuários)
+media/
+# Arquivos estáticos coletados
+staticfiles/
+
+# ----------------------------------------------------
+# IDEs e editores
+# ----------------------------------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# ----------------------------------------------------
+# Sistema operacional
+# ----------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------------------
+# Arquivos de configuração de ambiente
+# ----------------------------------------------------
+.env
+.env.local
+.env.*.local
+
+# ----------------------------------------------------
+# Logs e cache
+# ----------------------------------------------------
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.coverage
+__pycache__/
+
+# ----------------------------------------------------
+# Build e cache do Flutter
+# ----------------------------------------------------
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+.idea/
+.vscode/
+*.iml
+
+# ----------------------------------------------------
+# Arquivos gerados pelo Flutter
+# ----------------------------------------------------
+.flutter-plugins
+.flutter-plugins-dependencies
+.generated/
+
+# ----------------------------------------------------
+# Arquivos do Android
+# ----------------------------------------------------
+**/android/.gradle/
+**/android/app/build/
+**/android/local.properties
+**/android/.idea/
+**/android/*.iml
+
+# ----------------------------------------------------
+# Arquivos do iOS
+# ----------------------------------------------------
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Pods/
+**/ios/Runner.xcworkspace/
+**/ios/Flutter/App.framework
+**/ios/Flutter/FlutterPluginRegistrant/
+
+# ----------------------------------------------------
+# Logs e arquivos temporários
+# ----------------------------------------------------
+*.log
+*.lock
+*.tmp
+
+# ----------------------------------------------------
+# Sistema operacional
+# ----------------------------------------------------
+.DS_Store
+Thumbs.db
