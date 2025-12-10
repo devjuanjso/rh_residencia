@@ -1,2 +1,4 @@
 Django==6.0
 djangorestframework==3.16.1
+pillow==12.0.0
+drf-spectacular==0.29.0 ## Ainda preciso ver se é necessario
