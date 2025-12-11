@@ -5,10 +5,11 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 
 from projetos.views import ProjetoViewSet
-
+from vagas.views import VagaViewSet
 
 router = DefaultRouter()
 router.register(r'projetos', ProjetoViewSet, basename='projeto')
+router.register(r'vagas', VagaViewSet, basename='vaga')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
