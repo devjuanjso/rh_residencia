@@ -1,28 +1,18 @@
+import uuid
 from django.db import models
-
+from projetos.models import Projeto
 
 class Vaga(models.Model):
-    projeto = models.ForeignKey(
-        "Projeto",
-        on_delete=models.CASCADE,
-        related_name="vagas"
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    projeto = models.ForeignKey(Projeto, on_delete=models.CASCADE, related_name="vagas")
 
     titulo = models.CharField(max_length=120)
     descricao = models.TextField()
-    requisitos = models.TextField(blank=True, null=True)
 
-    nivel = models.CharField(
-        max_length=20,
-        choices=[
-            ("junior", "Júnior"),
-            ("pleno", "Pleno"),
-            ("senior", "Sênior"),
-        ],
-        default="junior"
-    )
-
-    quantidade = models.IntegerField(default=1)
+    habilidades_requeridas = models.JSONField(default=list)
+    certificacoes_requeridas = models.JSONField(default=list)
+    formacao_desejada = models.CharField(max_length=200, blank=True, null=True)
 
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
