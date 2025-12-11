@@ -6,10 +6,12 @@ from rest_framework.routers import DefaultRouter
 
 from projetos.views import ProjetoViewSet
 from vagas.views import VagaViewSet
+from colaboradores.views import ColaboradorViewSet
 
 router = DefaultRouter()
 router.register(r'projetos', ProjetoViewSet, basename='projeto')
 router.register(r'vagas', VagaViewSet, basename='vaga')
+router.register(r'colaboadores', ColaboradorViewSet, basename='colaboador')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
