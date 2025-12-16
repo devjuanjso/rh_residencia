@@ -1,10 +1,27 @@
+# Framework web
 Django==6.0
 djangorestframework==3.16.1
-pillow==12.0.0
+
+# Servidor WSGI / produção
 gunicorn==23.0.0
 whitenoise==6.11.0
-# drf-spectacular==0.29.0 ## Ainda preciso ver se é necessario
+
+# Processamento de imagens
+pillow==12.0.0
+
+# Machine Learning / IA
 scikit-learn==1.8.0
 numpy==2.3.5
 pandas==2.3.3
 joblib==1.5.2
+
+# Comunicação HTTP entre serviços
+requests==2.32.3
+
+# Configuração por variáveis de ambiente
+django-environ==0.11.2
+
+# CORS (acesso externo)
+django-cors-headers==4.4.0
+
+# drf-spectacular==0.29.0 ## Documentação OpenAPI (avaliar necessidade)
