@@ -4,22 +4,23 @@ from vagas.models import Vaga
 from .services import recomendar_por_vaga
 from .serializers import RecomendacaoCandidaturaSerializer
 
+
 class RecomendacaoViewSet(viewsets.ViewSet):
     """
-    GET /recomendacoes/?vaga=<uuid>
+    GET /recomendacoes/<uuid>
     """
 
     def list(self, request):
-        vaga_id = request.query_params.get("vaga")
+        return Response(
+            {
+                "detail": "Use /recomendacoes/<uuid-da-vaga>/ para obter recomendações."
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-        if not vaga_id:
-            return Response(
-                {"error": "Parâmetro 'vaga' obrigatório"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
+    def retrieve(self, request, pk=None):
         try:
-            vaga = Vaga.objects.get(id=vaga_id)
+            vaga = Vaga.objects.get(id=pk)
         except Vaga.DoesNotExist:
             return Response(
                 {"error": "Vaga não encontrada"},
