@@ -6,6 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from .utils import perfil_colaborador_para_texto, vaga_para_texto
 from colaboradores.models import Colaborador
 from vagas.models import Vaga
+from candidaturas.models import Candidatura
 
 VETORIZADOR_PATH = "recomendacao/ml_models/vetor_tfidf_vagas.joblib"
 
@@ -35,24 +36,40 @@ def carregar_vetorizador():
         return None
 
 
-def recomendar_colaboradores(vaga: Vaga):
-    colaboradores = list(Colaborador.objects.all())
+def recomendar_por_vaga(vaga: Vaga):
+    """
+    Retorna compatibilidade POR CANDIDATURA
+    considerando apenas colaboradores que se candidataram à vaga antes tava trazendo todos as pessoas kkkkk
+    """
+
+    candidaturas = (
+        Candidatura.objects
+        .filter(vaga=vaga)
+        .select_related("colaborador")
+    )
+
+    if not candidaturas.exists():
+        return []
+
     texto_vaga = vaga_para_texto(vaga)
 
     vectorizer = carregar_vetorizador()
     if vectorizer is None:
         vectorizer = treinar_vetorizador_completo()
 
-    textos_colaboradores = [perfil_colaborador_para_texto(c) for c in colaboradores]
-    todos_textos = [texto_vaga] + textos_colaboradores
+    textos_colaboradores = [
+        perfil_colaborador_para_texto(candidatura.colaborador)
+        for candidatura in candidaturas
+    ]
 
-    vetores = vectorizer.transform(todos_textos)
-    sim = cosine_similarity(vetores[0:1], vetores[1:]).flatten()
+    vetores = vectorizer.transform([texto_vaga] + textos_colaboradores)
+    similaridades = cosine_similarity(vetores[0:1], vetores[1:]).flatten()
 
     resultados = []
-    for colaborador, score in zip(colaboradores, sim):
+    for candidatura, score in zip(candidaturas, similaridades):
         resultados.append({
-            "colaborador_id": str(colaborador.id),
+            "candidatura_id": str(candidatura.id),
+            "colaborador_id": str(candidatura.colaborador.id),
             "compatibilidade": round(float(score), 4),
         })
 

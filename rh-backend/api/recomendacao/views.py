@@ -1,14 +1,12 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework import status
 from vagas.models import Vaga
-from .services import recomendar_colaboradores
-from .serializers import RecomendacaoSerializer
+from .services import recomendar_por_vaga
+from .serializers import RecomendacaoCandidaturaSerializer
 
 class RecomendacaoViewSet(viewsets.ViewSet):
     """
-    Recomendação por vaga.
-    Ex: GET /recomendacoes/?vaga=<uuid>
+    GET /recomendacoes/?vaga=<uuid>
     """
 
     def list(self, request):
@@ -20,8 +18,6 @@ class RecomendacaoViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        vaga_id = vaga_id.strip().replace("/", "")
-
         try:
             vaga = Vaga.objects.get(id=vaga_id)
         except Vaga.DoesNotExist:
@@ -30,6 +26,6 @@ class RecomendacaoViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        resultados = recomendar_colaboradores(vaga)
-        serializer = RecomendacaoSerializer(resultados, many=True)
+        resultados = recomendar_por_vaga(vaga)
+        serializer = RecomendacaoCandidaturaSerializer(resultados, many=True)
         return Response(serializer.data)
