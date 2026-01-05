@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:rh_app/features/position/view/position_page.dart';
+import 'package:rh_app/features/projects/view/projects_page.dart';
 
 void main() {
   runApp(const RHApp());
@@ -35,9 +36,9 @@ class _HomePageState extends State<HomePage> {
       PersistentTabController(initialIndex: 0);
 
   List<Widget> _buildScreens() {
-    return const [
+    return [
       ProjectsPage(),
-      PlaceholderPage(),
+      const PlaceholderPage(),
     ];
   }
 
@@ -67,22 +68,6 @@ class _HomePageState extends State<HomePage> {
       items: _navBarsItems(),
       navBarStyle: NavBarStyle.style3,
       backgroundColor: Colors.white,
-    );
-  }
-}
-
-class ProjectsPage extends StatelessWidget {
-  const ProjectsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text(
-          'Projects Page',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
     );
   }
 }
