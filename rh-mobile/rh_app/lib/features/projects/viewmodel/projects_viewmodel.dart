@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:rh_app/features/projects/controller/projects_controller.dart';
 
 class ProjectViewModel extends ChangeNotifier {
-  final TextEditingController nomeController = TextEditingController();
-  final TextEditingController descricaoController = TextEditingController();
+  final nomeController = TextEditingController();
+  final descricaoController = TextEditingController();
 
   File? imagem;
   bool loading = false;
 
-  void setImagem(File file) {
+  void setImagem(File? file) {
     imagem = file;
     notifyListeners();
   }
@@ -19,22 +19,25 @@ class ProjectViewModel extends ChangeNotifier {
     notifyListeners();
 
     final sucesso = await ProjectController.criarProjeto(
-      nome: nomeController.text,
-      descricao: descricaoController.text,
+      nome: nomeController.text.trim(),
+      descricao: descricaoController.text.trim(),
       imagem: imagem,
     );
 
     loading = false;
     notifyListeners();
 
-    if (sucesso) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Projeto criado com sucesso')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao criar projeto')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          sucesso ? 'Projeto criado com sucesso' : 'Erro ao criar projeto',
+        ),
+      ),
+    );
+  }
+
+  void disposeControllers() {
+    nomeController.dispose();
+    descricaoController.dispose();
   }
 }

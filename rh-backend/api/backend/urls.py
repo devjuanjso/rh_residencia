@@ -19,7 +19,7 @@ router.register(r'candidaturas', CandidaturaViewSet, basename='candidatura')
 router.register(r'recomendacoes', RecomendacaoViewSet, basename='recomendacao')
 
 def ping(request):
-    print('🔥 PING RECEBIDO DO FLUTTER')
+    print('PING RECEBIDO DO FLUTTER')
     return JsonResponse({"status": "ok"})
 
 urlpatterns = [

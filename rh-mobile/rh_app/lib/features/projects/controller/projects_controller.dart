@@ -10,7 +10,6 @@ class ProjectController {
   }) async {
     try {
       final uri = Uri.parse('${Config.baseUrl}/projetos/');
-
       final request = http.MultipartRequest('POST', uri);
 
       request.fields['nome'] = nome;
@@ -18,26 +17,19 @@ class ProjectController {
 
       if (imagem != null) {
         request.files.add(
-          await http.MultipartFile.fromPath(
-            'imagem',
-            imagem.path,
-          ),
+          await http.MultipartFile.fromPath('imagem', imagem.path),
         );
       }
 
       final response = await request.send();
+      final body = await response.stream.bytesToString();
 
-      if (response.statusCode == 201) {
-        print('Projeto criado com sucesso');
-        return true;
-      } else {
-        print('Erro ao criar projeto');
-        print('Status: ${response.statusCode}');
-        return false;
-      }
+      print('STATUS: ${response.statusCode}');
+      print('BODY: $body');
+
+      return response.statusCode == 201 || response.statusCode == 200;
     } catch (e) {
-      print('❌ Erro de conexão');
-      print(e);
+      print('Erro ao criar projeto: $e');
       return false;
     }
   }
