@@ -28,6 +28,11 @@ class _ProjectsPageState extends State<ProjectsPage> {
     }
   }
 
+  void _salvarProjeto() {
+    print('📝 Nome: ${projectNameController.text}');
+    print('🖼️ Imagem selecionada: ${_image != null}');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,7 +46,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           children: [
             const Text(
               'Nome do Projeto',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500,),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -52,7 +57,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
               ),
             ),
 
-            const SizedBox(height: 16), //espaço
+            const SizedBox(height: 16),
 
             const Text(
               'Descrição do projeto',
@@ -67,7 +72,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
               ),
             ),
 
-            const SizedBox(height: 16), //espaço
+            const SizedBox(height: 16),
 
             const Text(
               'Imagem do projeto',
@@ -104,9 +109,21 @@ class _ProjectsPageState extends State<ProjectsPage> {
                       ),
               ),
             ),
+
+            const SizedBox(height: 24),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _salvarProjeto,
+                child: const Text('Salvar Projeto'),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+  
 }
+
