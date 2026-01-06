@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
-import 'package:rh_app/core/services/http_service.dart';
+import 'package:provider/provider.dart';
 import 'package:rh_app/features/position/view/position_page.dart';
 import 'package:rh_app/features/projects/view/projects_page.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
+import 'package:rh_app/features/position/viewmodel/position_viewmodel.dart';
 
 void main() {
-  runApp(const RHApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ProjectViewModel(),
+      child: const RHApp(),
+    ),
+  );
 }
 
 class RHApp extends StatelessWidget {
@@ -42,7 +45,7 @@ class _HomePageState extends State<HomePage> {
   List<Widget> _buildScreens() {
     return [
       ProjectsPage(),
-      const PlaceholderPage(),
+      const PositionPage(),
     ];
   }
 
@@ -59,7 +62,7 @@ class _HomePageState extends State<HomePage> {
         title: 'More',
         activeColorPrimary: Colors.blue,
         inactiveColorPrimary: Colors.grey,
-    ),
+      ),
     ];
   }
 
@@ -73,25 +76,5 @@ class _HomePageState extends State<HomePage> {
       navBarStyle: NavBarStyle.style3,
       backgroundColor: Colors.white,
     );
-  }
-}
-
-Future<void> testarConexao() async {
-  try {
-    final response = await http.get(
-      Uri.parse('${Config.baseUrl}/ping/'),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      print('✅ CONEXÃO OK COM DJANGO');
-      print('Resposta do backend: $data');
-    } else {
-      print('⚠️ Backend respondeu, mas com erro');
-      print('Status: ${response.statusCode}');
-    }
-  } catch (e) {
-    print('❌ NÃO CONSEGUIU CONECTAR NO BACKEND');
-    print(e);
   }
 }
