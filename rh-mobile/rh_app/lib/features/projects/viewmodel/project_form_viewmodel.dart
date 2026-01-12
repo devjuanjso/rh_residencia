@@ -9,11 +9,13 @@ class ProjectViewModel extends ChangeNotifier {
   File? imagem;
   bool loading = false;
 
+  // Define a imagem selecionada para o projeto
   void setImagem(File? file) {
     imagem = file;
     notifyListeners();
   }
 
+  // Salva um novo projeto chamando o controller e mostra feedback na tela
   Future<void> salvarProjeto(BuildContext context) async {
     loading = true;
     notifyListeners();
@@ -36,6 +38,7 @@ class ProjectViewModel extends ChangeNotifier {
     );
   }
 
+  // Libera os controllers quando o view model não for mais usado
   void disposeControllers() {
     nomeController.dispose();
     descricaoController.dispose();

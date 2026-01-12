@@ -6,18 +6,20 @@ import 'package:rh_app/features/position/model/position_model.dart';
 import 'package:rh_app/features/projects/model/project_model.dart';
 
 class ProjectController {
+
+  // Cria um novo projeto na API
   static Future<bool> criarProjeto({
     required String nome,
     required String descricao,
     File? imagem,
   }) async {
     try {
+      // Endpoint de criação
       final uri = Uri.parse('${Config.baseUrl}/projetos/');
       final request = http.MultipartRequest('POST', uri);
 
       request.fields['nome'] = nome;
       request.fields['descricao'] = descricao;
-
       if (imagem != null) {
         request.files.add(
           await http.MultipartFile.fromPath('imagem', imagem.path),
@@ -37,42 +39,42 @@ class ProjectController {
     }
   }
 
+  // Edita um projeto existente na API
   static Future<bool> editarProjeto({
     required String nome,
     required String descricao,
     File? imagem,
   }) async {
     try {
+      // Ajustar %id para o id real quando usar
       final uri = Uri.parse('${Config.baseUrl}/projetos/%id/');
       final request = http.MultipartRequest('PUT', uri);
 
       request.fields['nome'] = nome;
       request.fields['descricao'] = descricao;
 
-      // imagem só envia se o usuário trocou
       if (imagem != null) {
         request.files.add(
-        await http.MultipartFile.fromPath('imagem', imagem.path),
-      );
-    }
-    final response = await request.send();
-    final body = await response.stream.bytesToString();
+          await http.MultipartFile.fromPath('imagem', imagem.path),
+        );
+      }
 
-    print('STATUS EDITAR: ${response.statusCode}');
-    print('BODY EDITAR: $body');
+      final response = await request.send();
 
-    return response.statusCode == 200;
+      return response.statusCode == 200;
     } catch (e) {
       print('Erro ao editar projeto: $e');
       return false;
     }
   }
 
+  // Busca todos os projetos cadastrados na API
   static Future<List<Project>> buscarProjetos() async {
     try {
       final uri = Uri.parse('${Config.baseUrl}/projetos/');
       final response = await http.get(uri);
 
+      // Se resposta ok converte JSON para lista de modelos
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         return data.map((e) => Project.fromJson(e)).toList();
@@ -86,32 +88,27 @@ class ProjectController {
     }
   }
 
-static Future<List<Position>> buscarVagasPorProjeto(String projetoId) async {
-  try {
-    final uri = Uri.parse('${Config.baseUrl}/vagas/por-projeto/$projetoId/');
-    print('🔎 Buscando vagas em: $uri');
+  // Busca vagas associadas a um projeto específico
+  static Future<List<Position>> buscarVagasPorProjeto(String projetoId) async {
+    try {
+      final uri = Uri.parse('${Config.baseUrl}/vagas/por-projeto/$projetoId/');
 
-    final response = await http.get(uri);
+      final response = await http.get(uri);
 
-    print('🌐 STATUS VAGAS: ${response.statusCode}');
-    print('📩 BODY VAGAS: ${response.body}');
+      // Quando retorno é 200, converte lista JSON em objetos Position
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
 
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
+        final vagas = data.map((e) => Position.fromJson(e)).toList();
 
-      print('📦 LISTA RECEBIDA: $data');
-
-      final vagas = data.map((e) => Position.fromJson(e)).toList();
-
-      print('✅ VAGAS CONVERTIDAS: $vagas');
-      return vagas;
-    } else {
-      print('❌ Erro ao buscar vagas: ${response.statusCode}');
+        return vagas;
+      } else {
+        print('Erro ao buscar vagas: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Erro ao buscar vagas: $e');
       return [];
     }
-  } catch (e) {
-    print('💥 Erro ao buscar vagas: $e');
-    return [];
   }
-}
 }

@@ -6,12 +6,11 @@ import 'package:rh_app/features/projects/model/project_model.dart';
 class ProjectListViewModel extends ChangeNotifier {
   List<Project> projetos = [];
   List<Position> vagasDoProjeto = [];
-
   bool loading = false;
   bool loadingVagas = false;
-
   int projetoAtual = 0;
 
+  // Busca todos os projetos
   Future<void> carregarProjetos() async {
     loading = true;
     notifyListeners();
@@ -21,12 +20,14 @@ class ProjectListViewModel extends ChangeNotifier {
     loading = false;
     notifyListeners();
 
+    // Se houver projetos, carrega as vagas do primeiro
     if (projetos.isNotEmpty) {
       projetoAtual = 0;
       await carregarVagasDoProjetoAtual();
     }
   }
 
+  // Busca as vagas do projeto selecionado
   Future<void> carregarVagasDoProjetoAtual() async {
     if (projetos.isEmpty) return;
 
@@ -40,6 +41,7 @@ class ProjectListViewModel extends ChangeNotifier {
       final String projetoId = projetos[index].id;
       vagasDoProjeto = await ProjectController.buscarVagasPorProjeto(projetoId);
     } catch (e) {
+      // Em erro, retorna lista vazia
       vagasDoProjeto = [];
     } finally {
       loadingVagas = false;
@@ -47,21 +49,27 @@ class ProjectListViewModel extends ChangeNotifier {
     }
   }
 
+  // Define manualmente qual projeto está selecionado
   Future<void> setProjetoAtual(int index) async {
     if (index < 0 || index >= projetos.length) return;
     if (index == projetoAtual) return;
+
     projetoAtual = index;
     vagasDoProjeto = [];
     notifyListeners();
+
     await carregarVagasDoProjetoAtual();
   }
 
+  // Avança para o próximo projeto da lista
   Future<void> irParaProximoProjeto() async {
     if (projetos.isEmpty) return;
     if (projetoAtual >= projetos.length - 1) return;
+
     projetoAtual++;
     vagasDoProjeto = [];
     notifyListeners();
+
     await carregarVagasDoProjetoAtual();
   }
 }

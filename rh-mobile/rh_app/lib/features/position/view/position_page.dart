@@ -13,6 +13,8 @@ class _PositionPageState extends State<PositionPage> {
   @override
   void initState() {
     super.initState();
+
+    // Carrega os projetos ao abrir a tela
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProjectViewModel>().carregarProjetos();
     });
@@ -20,6 +22,7 @@ class _PositionPageState extends State<PositionPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Observa o ViewModel
     final vm = context.watch<ProjectViewModel>();
 
     return Scaffold(
@@ -29,11 +32,14 @@ class _PositionPageState extends State<PositionPage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: vm.loadingProjetos
+            // Indicador de carregamento de projetos
             ? const Center(child: CircularProgressIndicator())
+            // Conteúdo do formulário
             : SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Seleção de projeto
                     const Text('Projeto'),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
@@ -54,6 +60,7 @@ class _PositionPageState extends State<PositionPage> {
 
                     const SizedBox(height: 16),
 
+                    // Campo título da vaga
                     const Text('Título da vaga'),
                     const SizedBox(height: 8),
                     TextField(
@@ -65,6 +72,7 @@ class _PositionPageState extends State<PositionPage> {
 
                     const SizedBox(height: 16),
 
+                    // Campo descrição da vaga
                     const Text('Descrição'),
                     const SizedBox(height: 8),
                     TextField(
@@ -77,6 +85,7 @@ class _PositionPageState extends State<PositionPage> {
 
                     const SizedBox(height: 16),
 
+                    // Seção de habilidades
                     const Text('Habilidades'),
                     const SizedBox(height: 8),
                     Row(
@@ -89,6 +98,7 @@ class _PositionPageState extends State<PositionPage> {
                             ),
                           ),
                         ),
+                        // Botão para adicionar habilidade
                         IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: vm.adicionarHabilidade,
@@ -98,6 +108,7 @@ class _PositionPageState extends State<PositionPage> {
 
                     const SizedBox(height: 8),
 
+                    // Chips com habilidades adicionadas
                     Wrap(
                       spacing: 8,
                       children: vm.habilidadesRequeridas
@@ -112,6 +123,7 @@ class _PositionPageState extends State<PositionPage> {
 
                     const SizedBox(height: 24),
 
+                    // Seção de certificações
                     const Text('Certificações'),
                     const SizedBox(height: 8),
                     Row(
@@ -124,6 +136,7 @@ class _PositionPageState extends State<PositionPage> {
                             ),
                           ),
                         ),
+                        // Botão para adicionar certificação
                         IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: vm.adicionarCertificacao,
@@ -133,6 +146,7 @@ class _PositionPageState extends State<PositionPage> {
 
                     const SizedBox(height: 8),
 
+                    // Chips de certificações
                     Wrap(
                       spacing: 8,
                       children: vm.certificacoesRequeridas
@@ -146,7 +160,8 @@ class _PositionPageState extends State<PositionPage> {
                     ),
 
                     const SizedBox(height: 24),
-                    
+
+                    // Seção de formação
                     const Text('Formação'),
                     const SizedBox(height: 8),
                     Row(
@@ -159,6 +174,7 @@ class _PositionPageState extends State<PositionPage> {
                             ),
                           ),
                         ),
+                        // Botão para adicionar formação
                         IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: vm.adicionarFormacao,
@@ -168,6 +184,7 @@ class _PositionPageState extends State<PositionPage> {
 
                     const SizedBox(height: 8),
 
+                    // Chips de formação
                     Wrap(
                       spacing: 8,
                       children: vm.formacaoRequeridas
@@ -182,6 +199,7 @@ class _PositionPageState extends State<PositionPage> {
 
                     const SizedBox(height: 24),
 
+                    // Botão para salvar vaga
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(

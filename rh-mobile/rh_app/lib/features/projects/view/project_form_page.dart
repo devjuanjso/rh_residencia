@@ -12,18 +12,22 @@ class ProjectsPage extends StatefulWidget {
 }
 
 class _ProjectsPageState extends State<ProjectsPage> {
-  final TextEditingController projectNameController =
-      TextEditingController();
-  final TextEditingController projectDescriptionController =
-      TextEditingController();
+  // Controllers dos campos de texto
+  final TextEditingController projectNameController = TextEditingController();
+  final TextEditingController projectDescriptionController = TextEditingController();
 
+  // Arquivo de imagem selecionado
   File? _image;
+
+  // Instância do image picker
   final ImagePicker _picker = ImagePicker();
+
+  // Flag de carregamento para controle de botão e indicador
   bool loading = false;
 
+  // Seleciona uma imagem da galeria do dispositivo
   Future<void> _pickImage() async {
-    final XFile? pickedImage =
-        await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage != null) {
       setState(() {
@@ -32,7 +36,9 @@ class _ProjectsPageState extends State<ProjectsPage> {
     }
   }
 
+  // Envia os dados do projeto para a API e salva
   Future<void> _salvarProjeto() async {
+    // Validação simples do nome do projeto
     if (projectNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Informe o nome do projeto')),
@@ -40,20 +46,24 @@ class _ProjectsPageState extends State<ProjectsPage> {
       return;
     }
 
+    // Ativa estado de loading
     setState(() {
       loading = true;
     });
 
+    // Chamada ao controller para criar o projeto
     final sucesso = await ProjectController.criarProjeto(
       nome: projectNameController.text,
       descricao: projectDescriptionController.text,
       imagem: _image,
     );
 
+    // Desativa loading
     setState(() {
       loading = false;
     });
 
+    // Feedback ao usuário e limpeza dos campos
     if (sucesso) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Projeto criado com sucesso')),
@@ -61,6 +71,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
       projectNameController.clear();
       projectDescriptionController.clear();
+
       setState(() {
         _image = null;
       });
@@ -73,6 +84,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Tela principal de criação de projetos
     return Scaffold(
       appBar: AppBar(
         title: const Text('Projetos'),
@@ -83,6 +95,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Campo: nome do projeto
               const Text(
                 'Nome do Projeto',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -98,6 +111,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
               const SizedBox(height: 16),
 
+              // Campo: descrição do projeto
               const Text(
                 'Descrição do projeto',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -114,6 +128,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
               const SizedBox(height: 16),
 
+              // Seleção de imagem do projeto
               const Text(
                 'Imagem do projeto',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -129,6 +144,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(8),
                   ),
+                  // Exibe placeholder ou imagem escolhida
                   child: _image == null
                       ? const Center(
                           child: Column(
@@ -152,6 +168,7 @@ class _ProjectsPageState extends State<ProjectsPage> {
 
               const SizedBox(height: 24),
 
+              // Botão salvar projeto
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
