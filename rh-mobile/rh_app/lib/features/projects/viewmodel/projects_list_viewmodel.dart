@@ -1,0 +1,67 @@
+import 'package:flutter/material.dart';
+import 'package:rh_app/features/position/model/position_model.dart';
+import 'package:rh_app/features/projects/controller/projects_controller.dart';
+import 'package:rh_app/features/projects/model/project_model.dart';
+
+class ProjectListViewModel extends ChangeNotifier {
+  List<Project> projetos = [];
+  List<Position> vagasDoProjeto = [];
+
+  bool loading = false;
+  bool loadingVagas = false;
+
+  int projetoAtual = 0;
+
+  Future<void> carregarProjetos() async {
+    loading = true;
+    notifyListeners();
+
+    projetos = await ProjectController.buscarProjetos();
+
+    loading = false;
+    notifyListeners();
+
+    if (projetos.isNotEmpty) {
+      projetoAtual = 0;
+      await carregarVagasDoProjetoAtual();
+    }
+  }
+
+  Future<void> carregarVagasDoProjetoAtual() async {
+    if (projetos.isEmpty) return;
+
+    final index = projetoAtual;
+    if (index < 0 || index >= projetos.length) return;
+
+    loadingVagas = true;
+    notifyListeners();
+
+    try {
+      final String projetoId = projetos[index].id;
+      vagasDoProjeto = await ProjectController.buscarVagasPorProjeto(projetoId);
+    } catch (e) {
+      vagasDoProjeto = [];
+    } finally {
+      loadingVagas = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> setProjetoAtual(int index) async {
+    if (index < 0 || index >= projetos.length) return;
+    if (index == projetoAtual) return;
+    projetoAtual = index;
+    vagasDoProjeto = [];
+    notifyListeners();
+    await carregarVagasDoProjetoAtual();
+  }
+
+  Future<void> irParaProximoProjeto() async {
+    if (projetos.isEmpty) return;
+    if (projetoAtual >= projetos.length - 1) return;
+    projetoAtual++;
+    vagasDoProjeto = [];
+    notifyListeners();
+    await carregarVagasDoProjetoAtual();
+  }
+}

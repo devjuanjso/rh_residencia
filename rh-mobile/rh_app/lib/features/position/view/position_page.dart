@@ -112,13 +112,13 @@ class _PositionPageState extends State<PositionPage> {
 
                     const SizedBox(height: 24),
 
-                    const Text('Habilidades'),
+                    const Text('Certificações'),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(
                           child: TextField(
-                            controller: vm.habilidadeController,
+                            controller: vm.certificacoesController,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                             ),
@@ -126,7 +126,7 @@ class _PositionPageState extends State<PositionPage> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.add),
-                          onPressed: vm.adicionarHabilidade,
+                          onPressed: vm.adicionarCertificacao,
                         ),
                       ],
                     ),
@@ -135,11 +135,11 @@ class _PositionPageState extends State<PositionPage> {
 
                     Wrap(
                       spacing: 8,
-                      children: vm.habilidadesRequeridas
+                      children: vm.certificacoesRequeridas
                           .map(
                             (h) => Chip(
                               label: Text(h),
-                              onDeleted: () => vm.removerHabilidade(h),
+                              onDeleted: () => vm.removerCertificacao(h),
                             ),
                           )
                           .toList(),
@@ -147,6 +147,41 @@ class _PositionPageState extends State<PositionPage> {
 
                     const SizedBox(height: 24),
                     
+                    const Text('Formação'),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: vm.formacaoController,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add),
+                          onPressed: vm.adicionarFormacao,
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Wrap(
+                      spacing: 8,
+                      children: vm.formacaoRequeridas
+                          .map(
+                            (h) => Chip(
+                              label: Text(h),
+                              onDeleted: () => vm.removerFormacao(h),
+                            ),
+                          )
+                          .toList(),
+                    ),
+
+                    const SizedBox(height: 24),
+
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(

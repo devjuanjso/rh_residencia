@@ -48,6 +48,34 @@ class ProjectViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void adicionarCertificacao() {
+    final texto = certificacoesController.text.trim();
+    if (texto.isEmpty || certificacoesRequeridas.contains(texto)) return;
+
+    certificacoesRequeridas.add(texto);
+    certificacoesController.clear();
+    notifyListeners();
+  }
+
+  void removerCertificacao(String certificacao) {
+    certificacoesRequeridas.remove(certificacao);
+    notifyListeners();
+  }
+
+    void adicionarFormacao() {
+    final texto = formacaoController.text.trim();
+    if (texto.isEmpty || formacaoRequeridas.contains(texto)) return;
+
+    formacaoRequeridas.add(texto);
+    formacaoController.clear();
+    notifyListeners();
+  }
+
+  void removerFormacao(String formacao) {
+    formacaoRequeridas.remove(formacao);
+    notifyListeners();
+  }
+
   Future<void> salvarVaga(BuildContext context) async {
     if (projectId == null) return;
 

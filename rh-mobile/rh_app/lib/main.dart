@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:rh_app/features/position/view/position_page.dart';
-import 'package:rh_app/features/projects/view/projects_page.dart';
+import 'package:rh_app/features/projects/view/project_form_page.dart';
 import 'package:rh_app/features/position/viewmodel/position_viewmodel.dart';
+import 'package:rh_app/features/projects/view/projects_list_page.dart';
 
 void main() {
   runApp(
@@ -44,7 +45,7 @@ class _HomePageState extends State<HomePage> {
 
   List<Widget> _buildScreens() {
     return [
-      ProjectsPage(),
+      ProjectListView(),
       const PositionPage(),
     ];
   }
