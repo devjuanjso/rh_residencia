@@ -5,6 +5,7 @@ class Position {
   final List<String> habilidadesRequeridas;
   final List<String> certificacoesRequeridas;
   final String? formacaoDesejada;
+  final String projetoId;
 
   Position({
     required this.id,
@@ -13,18 +14,20 @@ class Position {
     required this.habilidadesRequeridas,
     required this.certificacoesRequeridas,
     this.formacaoDesejada,
+    required this.projetoId,
   });
 
   factory Position.fromJson(Map<String, dynamic> json) {
     return Position(
-      id: json['id'],
-      titulo: json['titulo'],
+      id: json['id'] ?? '',
+      titulo: json['titulo'] ?? '',
       descricao: json['descricao'],
       habilidadesRequeridas:
           (json['habilidades_requeridas'] as List?)?.cast<String>() ?? [],
       certificacoesRequeridas:
           (json['certificacoes_requeridas'] as List?)?.cast<String>() ?? [],
       formacaoDesejada: json['formacao_desejada'],
+      projetoId: json['projeto'] ?? '',
     );
   }
 }

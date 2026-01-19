@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
-import 'package:rh_app/features/position/view/position_page.dart';
+import 'package:rh_app/features/position/view/position_list_page.dart';
 import 'package:rh_app/features/projects/view/project_form_page.dart';
-import 'package:rh_app/features/position/viewmodel/position_viewmodel.dart';
 import 'package:rh_app/features/projects/view/projects_list_page.dart';
+import 'package:rh_app/features/projects/viewmodel/project_form_viewmodel.dart';
 
 void main() {
   runApp(
@@ -45,22 +45,29 @@ class _HomePageState extends State<HomePage> {
 
   List<Widget> _buildScreens() {
     return [
-      ProjectListView(),
-      const PositionPage(),
+      const ProjectListView(),
+      const ProjectsPage(),
+      const PositionListPage()
     ];
   }
 
   List<PersistentBottomNavBarItem> _navBarsItems() {
     return [
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.work),
-        title: 'Projects',
+        icon: const Icon(Icons.list),
+        title: 'Lista',
         activeColorPrimary: Colors.blue,
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.more_horiz),
-        title: 'More',
+        icon: const Icon(Icons.add),
+        title: 'Novo',
+        activeColorPrimary: Colors.blue,
+        inactiveColorPrimary: Colors.grey,
+      ),
+      PersistentBottomNavBarItem(
+        icon: const Icon(Icons.more_horiz),
+        title: 'Mais',
         activeColorPrimary: Colors.blue,
         inactiveColorPrimary: Colors.grey,
       ),

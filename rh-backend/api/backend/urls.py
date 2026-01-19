@@ -14,7 +14,7 @@ from recomendacao.views import RecomendacaoViewSet
 router = DefaultRouter()
 router.register(r'projetos', ProjetoViewSet, basename='projeto')
 router.register(r'vagas', VagaViewSet, basename='vaga')
-router.register(r'colaboadores', ColaboradorViewSet, basename='colaboador')
+router.register(r'colaboradores', ColaboradorViewSet, basename='colaborador')
 router.register(r'candidaturas', CandidaturaViewSet, basename='candidatura')
 router.register(r'recomendacoes', RecomendacaoViewSet, basename='recomendacao')
 
