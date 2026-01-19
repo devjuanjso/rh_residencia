@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rh_app/features/position/model/position_model.dart';
-import 'package:rh_app/features/projects/controller/projects_controller.dart';
+import 'package:rh_app/features/projects/controller/project_controller.dart';
 import 'package:rh_app/features/projects/model/project_model.dart';
 
 class ProjectListViewModel extends ChangeNotifier {
@@ -8,9 +8,11 @@ class ProjectListViewModel extends ChangeNotifier {
   List<Position> vagasDoProjeto = [];
   bool loading = false;
   bool loadingVagas = false;
+  bool loadingAdmin = false;
   int projetoAtual = 0;
+  List<Project> projetosAdmin = [];
 
-  // Busca todos os projetos
+  // Carrega todos os projetos disponíveis na API
   Future<void> carregarProjetos() async {
     loading = true;
     notifyListeners();
@@ -20,14 +22,14 @@ class ProjectListViewModel extends ChangeNotifier {
     loading = false;
     notifyListeners();
 
-    // Se houver projetos, carrega as vagas do primeiro
+    // Carrega vagas do primeiro projeto automaticamente
     if (projetos.isNotEmpty) {
       projetoAtual = 0;
       await carregarVagasDoProjetoAtual();
     }
   }
 
-  // Busca as vagas do projeto selecionado
+  // Busca as vagas associadas ao projeto atualmente selecionado
   Future<void> carregarVagasDoProjetoAtual() async {
     if (projetos.isEmpty) return;
 
@@ -41,15 +43,14 @@ class ProjectListViewModel extends ChangeNotifier {
       final String projetoId = projetos[index].id;
       vagasDoProjeto = await ProjectController.buscarVagasPorProjeto(projetoId);
     } catch (e) {
-      // Em erro, retorna lista vazia
-      vagasDoProjeto = [];
+      vagasDoProjeto = []; // Lista vazia em caso de erro
     } finally {
       loadingVagas = false;
       notifyListeners();
     }
   }
 
-  // Define manualmente qual projeto está selecionado
+  // Altera o projeto selecionado manualmente
   Future<void> setProjetoAtual(int index) async {
     if (index < 0 || index >= projetos.length) return;
     if (index == projetoAtual) return;
@@ -61,7 +62,7 @@ class ProjectListViewModel extends ChangeNotifier {
     await carregarVagasDoProjetoAtual();
   }
 
-  // Avança para o próximo projeto da lista
+  // Avança automaticamente para o próximo projeto na lista
   Future<void> irParaProximoProjeto() async {
     if (projetos.isEmpty) return;
     if (projetoAtual >= projetos.length - 1) return;
@@ -71,5 +72,30 @@ class ProjectListViewModel extends ChangeNotifier {
     notifyListeners();
 
     await carregarVagasDoProjetoAtual();
+  }
+
+  // Carrega projetos para a aba de administração
+  Future<void> carregarProjetosAdmin() async {
+    loadingAdmin = true;
+    notifyListeners();
+
+    try {
+      projetosAdmin = await ProjectController.buscarProjetos();
+    } catch (e) {
+      projetosAdmin = [];
+    } finally {
+      loadingAdmin = false;
+      notifyListeners();
+    }
+  }
+
+  // Exclui um projeto da lista de administração
+  Future<void> excluirProjeto(String id) async {
+    final sucesso = await ProjectController.excluirProjeto(id);
+    if (sucesso) {
+      projetosAdmin.removeWhere((projeto) => projeto.id == id);
+      projetos.removeWhere((projeto) => projeto.id == id);
+      notifyListeners();
+    }
   }
 }

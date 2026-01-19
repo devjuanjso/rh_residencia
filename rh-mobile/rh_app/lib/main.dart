@@ -3,13 +3,13 @@ import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:rh_app/features/position/view/position_list_page.dart';
 import 'package:rh_app/features/projects/view/project_form_page.dart';
-import 'package:rh_app/features/projects/view/projects_list_page.dart';
+import 'package:rh_app/features/projects/view/project_list_page.dart';
 import 'package:rh_app/features/projects/viewmodel/project_form_viewmodel.dart';
 
 void main() {
   runApp(
     ChangeNotifierProvider(
-      create: (_) => ProjectViewModel(),
+      create: (_) => ProjectFormViewModel(),
       child: const RHApp(),
     ),
   );
@@ -45,8 +45,8 @@ class _HomePageState extends State<HomePage> {
 
   List<Widget> _buildScreens() {
     return [
-      const ProjectListView(),
-      const ProjectsPage(),
+      const ProjectListPage(),
+      const ProjectsFormPage(),
       const PositionListPage()
     ];
   }

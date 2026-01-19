@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rh_app/features/position/controller/position_controller.dart';
-import 'package:rh_app/features/projects/controller/projects_controller.dart';
+import 'package:rh_app/features/projects/controller/project_controller.dart';
 import 'package:rh_app/features/projects/model/project_model.dart';
 import 'package:rh_app/features/position/model/position_model.dart';
 
