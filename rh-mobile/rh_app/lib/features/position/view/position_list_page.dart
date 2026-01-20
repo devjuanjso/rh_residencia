@@ -56,7 +56,7 @@ class PositionListPage extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => PositionFormPage(vaga: vaga),
+                              builder: (context) => PositionFormPage(vaga: vaga, projetoId: '',),
                             ),
                           );
                         },
@@ -79,7 +79,7 @@ class PositionListPage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const PositionFormPage(),
+                builder: (context) => const PositionFormPage(projetoId: '',),
               ),
             );
           },

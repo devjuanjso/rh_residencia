@@ -7,7 +7,7 @@ import 'package:rh_app/features/projects/model/project_model.dart';
 class PositionFormPage extends StatelessWidget {
   final Position? vaga;
 
-  const PositionFormPage({super.key, this.vaga});
+  const PositionFormPage({super.key, this.vaga, required String projetoId});
 
   @override
   Widget build(BuildContext context) {
