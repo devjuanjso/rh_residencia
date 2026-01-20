@@ -8,11 +8,8 @@ class ProjectListViewModel extends ChangeNotifier {
   List<Position> vagasDoProjeto = [];
   bool loading = false;
   bool loadingVagas = false;
-  bool loadingAdmin = false;
   int projetoAtual = 0;
-  List<Project> projetosAdmin = [];
 
-  // Carrega todos os projetos disponíveis na API
   Future<void> carregarProjetos() async {
     loading = true;
     notifyListeners();
@@ -22,14 +19,12 @@ class ProjectListViewModel extends ChangeNotifier {
     loading = false;
     notifyListeners();
 
-    // Carrega vagas do primeiro projeto automaticamente
     if (projetos.isNotEmpty) {
       projetoAtual = 0;
       await carregarVagasDoProjetoAtual();
     }
   }
 
-  // Busca as vagas associadas ao projeto atualmente selecionado
   Future<void> carregarVagasDoProjetoAtual() async {
     if (projetos.isEmpty) return;
 
@@ -43,14 +38,13 @@ class ProjectListViewModel extends ChangeNotifier {
       final String projetoId = projetos[index].id;
       vagasDoProjeto = await ProjectController.buscarVagasPorProjeto(projetoId);
     } catch (e) {
-      vagasDoProjeto = []; // Lista vazia em caso de erro
+      vagasDoProjeto = [];
     } finally {
       loadingVagas = false;
       notifyListeners();
     }
   }
 
-  // Altera o projeto selecionado manualmente
   Future<void> setProjetoAtual(int index) async {
     if (index < 0 || index >= projetos.length) return;
     if (index == projetoAtual) return;
@@ -62,7 +56,6 @@ class ProjectListViewModel extends ChangeNotifier {
     await carregarVagasDoProjetoAtual();
   }
 
-  // Avança automaticamente para o próximo projeto na lista
   Future<void> irParaProximoProjeto() async {
     if (projetos.isEmpty) return;
     if (projetoAtual >= projetos.length - 1) return;
@@ -72,30 +65,5 @@ class ProjectListViewModel extends ChangeNotifier {
     notifyListeners();
 
     await carregarVagasDoProjetoAtual();
-  }
-
-  // Carrega projetos para a aba de administração
-  Future<void> carregarProjetosAdmin() async {
-    loadingAdmin = true;
-    notifyListeners();
-
-    try {
-      projetosAdmin = await ProjectController.buscarProjetos();
-    } catch (e) {
-      projetosAdmin = [];
-    } finally {
-      loadingAdmin = false;
-      notifyListeners();
-    }
-  }
-
-  // Exclui um projeto da lista de administração
-  Future<void> excluirProjeto(String id) async {
-    final sucesso = await ProjectController.excluirProjeto(id);
-    if (sucesso) {
-      projetosAdmin.removeWhere((projeto) => projeto.id == id);
-      projetos.removeWhere((projeto) => projeto.id == id);
-      notifyListeners();
-    }
   }
 }

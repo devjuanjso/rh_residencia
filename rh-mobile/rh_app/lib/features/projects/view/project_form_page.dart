@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:rh_app/features/projects/viewmodel/project_form_viewmodel.dart';
 
 class ProjectsFormPage extends StatefulWidget {
-  final String? projetoId; // Null para criar, não null para editar
+  final String? projetoId;
 
   const ProjectsFormPage({super.key, this.projetoId});
 
@@ -14,37 +14,19 @@ class ProjectsFormPage extends StatefulWidget {
 }
 
 class _ProjectsFormPageState extends State<ProjectsFormPage> {
-  bool _isInitialized = false;
   bool _isPickingImage = false;
 
   @override
   void initState() {
     super.initState();
-    _isInitialized = false;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    
-    // Inicializa o viewmodel apenas uma vez
-    if (!_isInitialized) {
-      _isInitialized = true;
-      
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final vm = context.read<ProjectFormViewModel>();
-      
-      // Carrega dados para edição se houver projetoId
       if (widget.projetoId != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            vm.buscarProjetoParaEdicao(widget.projetoId!);
-          }
-        });
+        vm.buscarProjetoParaEdicao(widget.projetoId!);
       } else {
-        // Limpa dados para criação
         vm.limparDados();
       }
-    }
+    });
   }
 
   @override
@@ -59,12 +41,10 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
       ),
       body: Consumer<ProjectFormViewModel>(
         builder: (context, vm, _) {
-          // Exibe loading enquanto carrega dados de edição
           if (widget.projetoId != null && vm.loading && !vm.dadosCarregados) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Exibe erro se projeto não for encontrado
           if (widget.projetoId != null && !vm.loading && vm.projetoId == null) {
             return Center(
               child: Column(
@@ -89,7 +69,6 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
     );
   }
 
-  // Constrói o conteúdo do formulário
   Widget _buildFormContent(BuildContext context, ProjectFormViewModel vm) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -97,7 +76,6 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Campo de nome do projeto
             const Text(
               'Nome do Projeto',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -113,7 +91,6 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
 
             const SizedBox(height: 16),
 
-            // Campo de descrição do projeto
             const Text(
               'Descrição do projeto',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -130,12 +107,10 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
 
             const SizedBox(height: 16),
 
-            // Seção de imagem
             _buildImageSection(context, vm),
 
             const SizedBox(height: 24),
 
-            // Botão principal de ação
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -158,7 +133,6 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
     );
   }
 
-  // Constrói a seção de seleção de imagem
   Widget _buildImageSection(BuildContext context, ProjectFormViewModel vm) {
     final bool estaEditando = widget.projetoId != null;
     final bool temImagemUrl = vm.imagemUrlAtual != null && vm.imagemUrlAtual!.isNotEmpty;
@@ -173,11 +147,9 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
         ),
         const SizedBox(height: 8),
 
-        // Mostra imagem atual se estiver editando
         if (estaEditando && temImagemUrl)
           Column(
             children: [
-              // Preview da imagem atual
               Container(
                 height: 150,
                 width: double.infinity,
@@ -207,7 +179,6 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
               ),
               const SizedBox(height: 8),
               
-              // Opção para manter imagem atual
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -245,11 +216,9 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
             ],
           ),
 
-        // Mostra seletor de imagem se necessário
         if (!estaEditando || !vm.manterImagemAtual || !temImagemUrl)
           Column(
             children: [
-              // Container para imagem
               GestureDetector(
                 onTap: _isPickingImage ? null : () => _pickImage(context, vm),
                 child: Container(
@@ -263,7 +232,6 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
                 ),
               ),
               
-              // Botão para remover imagem selecionada
               if (temImagemNova && !vm.loading)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -279,7 +247,6 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
     );
   }
 
-  // Constrói preview da imagem
   Widget _buildImagePreview(ProjectFormViewModel vm, bool temImagemNova) {
     if (temImagemNova) {
       return ClipRRect(
@@ -291,7 +258,6 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
       );
     }
 
-    // Placeholder para selecionar imagem
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -307,7 +273,6 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
     );
   }
 
-  // Seleciona imagem da galeria
   Future<void> _pickImage(BuildContext context, ProjectFormViewModel vm) async {
     if (_isPickingImage) return;
 
@@ -325,7 +290,6 @@ class _ProjectsFormPageState extends State<ProjectsFormPage> {
       if (pickedImage != null && context.mounted) {
         vm.setImagem(File(pickedImage.path));
         
-        // Desmarca opção de manter imagem atual se estiver editando
         if (widget.projetoId != null && vm.manterImagemAtual) {
           vm.setManterImagemAtual(false);
         }

@@ -7,12 +7,7 @@ import 'package:rh_app/features/projects/view/project_list_page.dart';
 import 'package:rh_app/features/projects/viewmodel/project_form_viewmodel.dart';
 
 void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => ProjectFormViewModel(),
-      child: const RHApp(),
-    ),
-  );
+  runApp(const RHApp());
 }
 
 class RHApp extends StatelessWidget {
@@ -20,14 +15,19 @@ class RHApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'RH',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProjectFormViewModel()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'RH',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        home: const HomePage(),
       ),
-      home: const HomePage(),
     );
   }
 }
@@ -46,8 +46,12 @@ class _HomePageState extends State<HomePage> {
   List<Widget> _buildScreens() {
     return [
       const ProjectListPage(),
-      const ProjectsFormPage(),
-      const PositionListPage()
+      Consumer<ProjectFormViewModel>(
+        builder: (context, viewModel, child) {
+          return ProjectsFormPage();
+        },
+      ),
+      const PositionListPage(),
     ];
   }
 
