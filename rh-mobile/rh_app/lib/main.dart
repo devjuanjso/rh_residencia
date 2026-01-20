@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
-import 'package:rh_app/features/position/view/position_list_page.dart';
 import 'package:rh_app/features/profile/profile_page.dart';
 import 'package:rh_app/features/projects/view/project_form_page.dart';
 import 'package:rh_app/features/projects/view/project_list_page.dart';
