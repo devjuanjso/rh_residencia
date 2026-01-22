@@ -184,7 +184,7 @@ class MyProjectsPage extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const ProjectsFormPage(),
+        builder: (context) => const ProjectFormPage(),
       ),
     ).then((value) {
       // Recarrega a lista de projetos após adicionar um novo

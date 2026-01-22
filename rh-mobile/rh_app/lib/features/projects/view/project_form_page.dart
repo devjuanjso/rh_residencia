@@ -4,16 +4,16 @@ import 'package:rh_app/core/components/image_picker_field.dart';
 import 'package:rh_app/core/components/loading_overlay.dart';
 import 'package:rh_app/features/projects/viewmodel/project_form_viewmodel.dart';
 
-class ProjectsFormPage extends StatefulWidget {
+class ProjectFormPage extends StatefulWidget {
   final String? projetoId;
 
-  const ProjectsFormPage({super.key, this.projetoId});
+  const ProjectFormPage({super.key, this.projetoId});
 
   @override
-  State<ProjectsFormPage> createState() => _ProjectsFormPageState();
+  State<ProjectFormPage> createState() => _ProjectsFormPageState();
 }
 
-class _ProjectsFormPageState extends State<ProjectsFormPage> {
+class _ProjectsFormPageState extends State<ProjectFormPage> {
   @override
   void initState() {
     super.initState();
