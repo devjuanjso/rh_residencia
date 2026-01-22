@@ -58,8 +58,8 @@ class _HomePageState extends State<HomePage> {
   List<PersistentBottomNavBarItem> _navBarsItems() {
     return [
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.list),
-        title: 'Lista',
+        icon: const Icon(Icons.swipe),
+        title: 'Descobrir',
         activeColorPrimary: Colors.blue,
         inactiveColorPrimary: Colors.grey,
       ),
@@ -70,8 +70,8 @@ class _HomePageState extends State<HomePage> {
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.more_horiz),
-        title: 'Mais',
+        icon: const Icon(Icons.person),
+        title: 'Perfil',
         activeColorPrimary: Colors.blue,
         inactiveColorPrimary: Colors.grey,
       ),

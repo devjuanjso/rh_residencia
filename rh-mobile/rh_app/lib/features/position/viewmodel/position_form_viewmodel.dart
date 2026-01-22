@@ -4,7 +4,7 @@ import 'package:rh_app/features/projects/controller/project_controller.dart';
 import 'package:rh_app/features/projects/model/project_model.dart';
 import 'package:rh_app/features/position/model/position_model.dart';
 
-class PositionViewModel extends ChangeNotifier {
+class PositionFormViewModel extends ChangeNotifier {
   String? _positionId;
   bool get isEdit => _positionId != null;
 
