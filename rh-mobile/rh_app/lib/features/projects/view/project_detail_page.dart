@@ -9,19 +9,19 @@ import 'package:rh_app/features/position/view/position_detail_page.dart';
 import 'package:rh_app/features/projects/model/project_model.dart';
 import 'package:rh_app/features/projects/controller/project_controller.dart';
 
-class ProjectDetailView extends StatefulWidget {
+class ProjectDetailPage extends StatefulWidget {
   final Project project;
   
-  const ProjectDetailView({
+  const ProjectDetailPage({
     super.key,
     required this.project,
   });
 
   @override
-  State<ProjectDetailView> createState() => _ProjectDetailViewState();
+  State<ProjectDetailPage> createState() => _ProjectDetailPageState();
 }
 
-class _ProjectDetailViewState extends State<ProjectDetailView> {
+class _ProjectDetailPageState extends State<ProjectDetailPage> {
   final List<Position> _positions = [];
   bool _isLoading = false;
   String _errorMessage = '';
