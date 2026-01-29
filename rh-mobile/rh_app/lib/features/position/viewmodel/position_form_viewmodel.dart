@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:rh_app/features/position/controller/position_controller.dart';
 import 'package:rh_app/features/projects/controller/project_controller.dart';
-import 'package:rh_app/features/projects/model/project_model.dart';
 import 'package:rh_app/features/position/model/position_model.dart';
 
 class PositionFormViewModel extends ChangeNotifier {
   String? _positionId;
   bool get isEdit => _positionId != null;
 
-  List<Project> _projetos = [];
-  String? _projectId;
-  bool _loadingProjetos = false;
-
+  String? _projetoId;
+  String? _projetoNome;
+  bool _projetoFixo = false;
+  
   final _tituloController = TextEditingController();
   final _descricaoController = TextEditingController();
   final _habilidadeController = TextEditingController();
@@ -23,10 +22,10 @@ class PositionFormViewModel extends ChangeNotifier {
 
   bool _loading = false;
 
-  List<Project> get projetos => _projetos;
-  String? get projectId => _projectId;
+  String? get projetoId => _projetoId;
+  String? get projetoNome => _projetoNome;
   bool get loading => _loading;
-  bool get loadingProjetos => _loadingProjetos;
+  bool get projetoFixo => _projetoFixo;
 
   TextEditingController get tituloController => _tituloController;
   TextEditingController get descricaoController => _descricaoController;
@@ -37,24 +36,27 @@ class PositionFormViewModel extends ChangeNotifier {
   List<String> get habilidadesRequeridas => _habilidadesRequeridas;
   List<String> get certificacoesRequeridas => _certificacoesRequeridas;
 
-  // Carrega a lista de projetos disponíveis para associar à vaga
-  Future<void> carregarProjetos() async {
-    _loadingProjetos = true;
-    notifyListeners();
-
-    try {
-      _projetos = await ProjectController.buscarProjetos();
-    } catch (_) {
-      _projetos = [];
-    }
-
-    _loadingProjetos = false;
+  // Define um projeto fixo (não pode ser alterado)
+  void setProjetoFixo(String projetoId) {
+    _projetoId = projetoId;
+    _projetoFixo = true;
     notifyListeners();
   }
 
-  // Seleciona um projeto da lista para associar à vaga
-  void selecionarProjeto(String? id) {
-    _projectId = id;
+  // Carrega o nome do projeto para display
+  Future<void> carregarProjetoParaDisplay(String projetoId, String? projetoNome) async {
+    if (projetoNome != null) {
+      _projetoNome = projetoNome;
+      notifyListeners();
+      return;
+    }
+    
+    try {
+      final projeto = await ProjectController.buscarProjetoPorId(projetoId);
+      _projetoNome = projeto?.nome ?? 'Projeto não encontrado';
+    } catch (_) {
+      _projetoNome = 'Erro ao carregar projeto';
+    }
     notifyListeners();
   }
 
@@ -101,7 +103,11 @@ class PositionFormViewModel extends ChangeNotifier {
     String? formacao,
   }) {
     _positionId = id;
-    _projectId = projectId;
+    
+    // Só define o projeto se não estiver fixo (para edição)
+    if (!_projetoFixo) {
+      _projetoId = projectId;
+    }
 
     _tituloController.text = titulo;
     _descricaoController.text = descricao;
@@ -135,7 +141,7 @@ class PositionFormViewModel extends ChangeNotifier {
 
   // Salva uma nova vaga ou atualiza uma existente
   Future<void> salvarVaga(BuildContext context) async {
-    if (_projectId == null ||
+    if (_projetoId == null ||
         _tituloController.text.isEmpty ||
         _descricaoController.text.isEmpty) {
       _snack(context, 'Preencha os campos obrigatórios');
@@ -149,7 +155,7 @@ class PositionFormViewModel extends ChangeNotifier {
       if (isEdit) {
         await PositionController.update(
           id: _positionId!,
-          projetoId: _projectId!,
+          projetoId: _projetoId!,
           titulo: _tituloController.text,
           descricao: _descricaoController.text,
           habilidadesRequeridas: _habilidadesRequeridas,
@@ -160,7 +166,7 @@ class PositionFormViewModel extends ChangeNotifier {
         );
       } else {
         await PositionController.create(
-          projetoId: _projectId!,
+          projetoId: _projetoId!,
           titulo: _tituloController.text,
           descricao: _descricaoController.text,
           habilidadesRequeridas: _habilidadesRequeridas,
@@ -173,7 +179,7 @@ class PositionFormViewModel extends ChangeNotifier {
 
       _limparFormulario();
       _snack(context, isEdit ? 'Vaga atualizada' : 'Vaga criada');
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (_) {
       _snack(context, 'Erro ao salvar vaga');
     }
@@ -191,7 +197,9 @@ class PositionFormViewModel extends ChangeNotifier {
   // Limpa todos os campos do formulário
   void _limparFormulario() {
     _positionId = null;
-    _projectId = null;
+    if (!_projetoFixo) {
+      _projetoId = null;
+    }
 
     _tituloController.clear();
     _descricaoController.clear();

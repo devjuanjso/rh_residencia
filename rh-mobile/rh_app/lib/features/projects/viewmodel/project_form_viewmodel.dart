@@ -58,23 +58,27 @@ class ProjectFormViewModel extends ChangeNotifier {
   }
 
   // Salva projeto (criação ou edição)
-  Future<bool> salvarProjeto(BuildContext context) async {
+  Future<String?> salvarProjeto(BuildContext context) async {
     loading = true;
     _safeNotifyListeners();
 
     try {
-      bool sucesso;
+      String? projetoIdCriado;
 
       if (projetoId != null) {
-        sucesso = await ProjectController.editarProjeto(
+        final sucesso = await ProjectController.editarProjeto(
           projetoId: projetoId!,
           nome: nomeController.text.trim(),
           descricao: descricaoController.text.trim(),
           imagem: imagem,
           manterImagemAtual: manterImagemAtual,
         );
+        
+        if (sucesso) {
+          projetoIdCriado = projetoId;
+        }
       } else {
-        sucesso = await ProjectController.criarProjeto(
+        projetoIdCriado = await ProjectController.criarProjeto(
           nome: nomeController.text.trim(),
           descricao: descricaoController.text.trim(),
           imagem: imagem,
@@ -87,15 +91,15 @@ class ProjectFormViewModel extends ChangeNotifier {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            sucesso 
+            projetoIdCriado != null 
                 ? (projetoId != null ? 'Projeto atualizado com sucesso' : 'Projeto criado com sucesso')
                 : (projetoId != null ? 'Erro ao atualizar projeto' : 'Erro ao criar projeto'),
           ),
-          backgroundColor: sucesso ? Colors.green : Colors.red,
+          backgroundColor: projetoIdCriado != null ? Colors.green : Colors.red,
         ),
       );
 
-      return sucesso;
+      return projetoIdCriado;
     } catch (e) {
       loading = false;
       _safeNotifyListeners();
@@ -107,7 +111,7 @@ class ProjectFormViewModel extends ChangeNotifier {
         ),
       );
       
-      return false;
+      return null;
     }
   }
 

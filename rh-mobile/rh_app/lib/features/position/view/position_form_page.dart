@@ -1,27 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rh_app/core/components/loading_overlay.dart';
 import 'package:rh_app/features/position/components/skill_input_section.dart';
 import 'package:rh_app/features/position/model/position_model.dart';
 import 'package:rh_app/features/position/viewmodel/position_form_viewmodel.dart';
-import 'package:rh_app/features/projects/model/project_model.dart';
 
-class PositionFormPage extends StatelessWidget {
+class PositionFormPage extends StatefulWidget {
   final Position? vaga;
   final String projetoId;
+  final String? projetoNome;
 
   const PositionFormPage({
     super.key,
     this.vaga,
     required this.projetoId,
+    this.projetoNome,
   });
 
   @override
+  State<PositionFormPage> createState() => _PositionFormPageState();
+}
+
+class _PositionFormPageState extends State<PositionFormPage> {
+  late PositionFormViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = PositionFormViewModel()
+      ..setProjetoFixo(widget.projetoId)
+      ..carregarProjetoParaDisplay(widget.projetoId, widget.projetoNome)
+      ..carregarParaEdicao(widget.vaga);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => PositionFormViewModel()
-        ..carregarProjetos()
-        ..carregarParaEdicao(vaga),
+    return ChangeNotifierProvider.value(
+      value: _viewModel,
       child: Consumer<PositionFormViewModel>(
         builder: (context, vm, _) {
           return Scaffold(
@@ -29,11 +43,7 @@ class PositionFormPage extends StatelessWidget {
               title: Text(vm.isEdit ? 'Editar Vaga' : 'Criar Vaga'),
               centerTitle: true,
             ),
-            body: LoadingOverlay(
-              isLoading: vm.loadingProjetos,
-              message: 'Carregando projetos...',
-              child: _buildForm(context, vm),
-            ),
+            body: _buildForm(context, vm),
           );
         },
       ),
@@ -46,23 +56,10 @@ class PositionFormPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Campo de seleção de projeto
+          // Campo de projeto (travado/display only)
           _buildRequiredField(
             'Projeto',
-            DropdownButtonFormField<String>(
-              value: vm.projectId,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Selecione um projeto',
-              ),
-              items: vm.projetos.map((Project p) {
-                return DropdownMenuItem(
-                  value: p.id,
-                  child: Text(p.nome),
-                );
-              }).toList(),
-              onChanged: vm.selecionarProjeto,
-            ),
+            _buildProjetoField(vm),
           ),
           const SizedBox(height: 16),
 
@@ -145,6 +142,32 @@ class PositionFormPage extends StatelessWidget {
                     ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProjetoField(PositionFormViewModel vm) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey[400]!),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.folder, color: Colors.blue),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              vm.projetoNome ?? 'Carregando...',
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Icon(Icons.lock, color: Colors.grey, size: 18),
         ],
       ),
     );

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rh_app/core/components/image_picker_field.dart';
 import 'package:rh_app/core/components/loading_overlay.dart';
+import 'package:rh_app/features/projects/view/project_detail_page.dart';
 import 'package:rh_app/features/projects/viewmodel/project_form_viewmodel.dart';
+import 'package:rh_app/features/projects/controller/project_controller.dart';
 
 class ProjectFormPage extends StatefulWidget {
   final String? projetoId;
@@ -185,9 +187,25 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     ProjectFormViewModel vm,
     BuildContext context,
   ) async {
-    final sucesso = await vm.salvarProjeto(context);
-    if (sucesso && context.mounted) {
-      Navigator.pop(context, true);
+    final projetoIdCriado = await vm.salvarProjeto(context);
+    
+    if (projetoIdCriado != null && context.mounted) {
+      if (vm.projetoId != null) {
+        Navigator.pop(context, true);
+      } else {
+        final projetoCriado = await ProjectController.buscarProjetoPorId(projetoIdCriado);
+        
+        if (projetoCriado != null && context.mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProjectDetailPage(project: projetoCriado),
+            ),
+          );
+        } else if (context.mounted) {
+          Navigator.pop(context, true);
+        }
+      }
     }
   }
 

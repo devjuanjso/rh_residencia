@@ -51,7 +51,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   }
 
   Future<void> _deletePosition(String positionId) async {
-    // TODO: Implementar lógica de exclusão
     await _loadPositions();
   }
 
@@ -103,7 +102,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Barra superior com botão para adicionar vagas
   AppBar _buildAppBar() {
     return AppBar(
       title: Text(widget.project.nome),
@@ -117,7 +115,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Card principal do projeto
   Widget _buildProjectCard() {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -128,7 +125,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Seção de vagas do projeto
   Widget _buildPositionsSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -143,7 +139,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Título da seção de vagas
   Widget _buildPositionsTitle() {
     return const Text(
       'Vagas disponíveis',
@@ -154,7 +149,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Conteúdo da lista de vagas com estados
   Widget _buildPositionsContent() {
     return LoadingOverlay(
       isLoading: _isLoading,
@@ -163,7 +157,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Lista de vagas ou estado alternativo
   Widget _buildPositionsList() {
     if (_errorMessage.isNotEmpty) {
       return _buildErrorState();
@@ -176,7 +169,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     return _buildPositionsListView();
   }
 
-  // Estado de erro no carregamento
   Widget _buildErrorState() {
     return Center(
       child: Padding(
@@ -202,7 +194,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Estado quando não há vagas
   Widget _buildEmptyPositionsState() {
     return EmptyState(
       icon: Icons.work_outline,
@@ -216,7 +207,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Lista scrollável de vagas
   Widget _buildPositionsListView() {
     return ListView.separated(
       shrinkWrap: true,
@@ -230,7 +220,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Item individual de vaga
   Widget _buildPositionListItem(Position position) {
     return PositionListItem(
       position: position,
@@ -242,13 +231,13 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Navega para página de criação de vaga
   Future<void> _handleAddPosition() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => PositionFormPage(
           projetoId: widget.project.id,
+          projetoNome: widget.project.nome,
         ),
       ),
     );
@@ -258,7 +247,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
   }
 
-  // Navega para detalhes da vaga
   void _handleViewDetails(Position position) {
     Navigator.push(
       context,
@@ -268,7 +256,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Navega para edição de vaga
   Future<void> _handleEditPosition(Position position) async {
     final result = await Navigator.push(
       context,
@@ -276,6 +263,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         builder: (context) => PositionFormPage(
           vaga: position,
           projetoId: widget.project.id,
+          projetoNome: widget.project.nome,
         ),
       ),
     );
