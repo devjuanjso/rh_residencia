@@ -1,0 +1,32 @@
+services:
+  backend:
+    build: ./rh-backend
+    container_name: django-backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./rh-backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+    networks:
+      - rh-net
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - rh-net
+
+volumes:
+  ollama_data:
+
+networks:
+  rh-net:
+    driver: bridge
