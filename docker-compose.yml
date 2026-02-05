@@ -1,10 +1,10 @@
 services:
   backend:
-    build: ./rh-backend
+    build: ./backend
     container_name: django-backend
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./rh-backend:/app
+      - ./backend:/app
     ports:
       - "8000:8000"
     depends_on:
