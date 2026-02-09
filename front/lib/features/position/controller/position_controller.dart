@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:rh_app/core/services/http_service.dart';
-import 'package:rh_app/features/position/model/position_model.dart';
+import '../../../core/services/http_service.dart';
+import '../model/position_model.dart';
 
 class PositionController {
   static final Uri _baseUri = Uri.parse('${Config.baseUrl}/vagas/');

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rh_app/features/position/components/skill_input_section.dart';
-import 'package:rh_app/features/position/model/position_model.dart';
-import 'package:rh_app/features/position/viewmodel/position_form_viewmodel.dart';
+import '../components/skill_input_section.dart';
+import '../model/position_model.dart';
+import '../viewmodel/position_form_viewmodel.dart';
 
 class PositionFormPage extends StatefulWidget {
   final Position? vaga;

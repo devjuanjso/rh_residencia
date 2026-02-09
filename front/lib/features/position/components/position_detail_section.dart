@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rh_app/features/position/model/position_model.dart';
-import 'package:rh_app/core/components/custom_card.dart';
+import '../model/position_model.dart';
+import '../../../core/components/custom_card.dart';
 
 class PositionDetailSection extends StatelessWidget {
   final Position position;

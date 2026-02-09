@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:rh_app/core/services/http_service.dart';
-import 'package:rh_app/features/position/model/position_model.dart';
-import 'package:rh_app/features/projects/model/project_model.dart';
+import '../../../core/services/http_service.dart';
+import '../../position/model/position_model.dart';
+import '../model/project_model.dart';
 
 class ProjectController {
   

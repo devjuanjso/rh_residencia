@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:rh_app/features/projects/controller/project_controller.dart';
+import '../controller/project_controller.dart';
 
 class ProjectFormViewModel extends ChangeNotifier {
   final nomeController = TextEditingController();

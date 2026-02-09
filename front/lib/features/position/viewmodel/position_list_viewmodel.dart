@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rh_app/features/position/model/position_model.dart';
+import '../model/position_model.dart';
 import '../controller/position_controller.dart';
 
 class PositionListViewModel extends ChangeNotifier {

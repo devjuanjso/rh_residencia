@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rh_app/core/components/image_picker_field.dart';
-import 'package:rh_app/core/components/loading_overlay.dart';
-import 'package:rh_app/features/projects/view/project_detail_page.dart';
-import 'package:rh_app/features/projects/viewmodel/project_form_viewmodel.dart';
-import 'package:rh_app/features/projects/controller/project_controller.dart';
+import '../../../core/components/image_picker_field.dart';
+import '../../../core/components/loading_overlay.dart';
+import 'project_detail_page.dart';
+import '../viewmodel/project_form_viewmodel.dart';
+import '../controller/project_controller.dart';
 
 class ProjectFormPage extends StatefulWidget {
   final String? projetoId;

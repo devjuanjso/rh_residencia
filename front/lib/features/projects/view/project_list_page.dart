@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rh_app/core/components/loading_overlay.dart';
-import 'package:rh_app/core/layout/empty_state.dart';
-import 'package:rh_app/features/projects/components/project_card.dart';
-import 'package:rh_app/features/projects/components/position_list_item.dart';
-import 'package:rh_app/features/projects/viewmodel/project_list_viewmodel.dart';
+import '../../../core/components/loading_overlay.dart';
+import '../../../core/layout/empty_state.dart';
+import '../components/project_card.dart';
+import '../components/position_list_item.dart';
+import '../viewmodel/project_list_viewmodel.dart';
 
 class ProjectListPage extends StatelessWidget {
   const ProjectListPage({super.key});

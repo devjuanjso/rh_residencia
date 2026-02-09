@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rh_app/features/position/model/position_model.dart';
+import '../../position/model/position_model.dart';
 
 class PositionListItem extends StatelessWidget {
   final Position position;

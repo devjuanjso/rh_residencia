@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:rh_app/features/position/model/position_model.dart';
-import 'package:rh_app/features/projects/controller/project_controller.dart';
-import 'package:rh_app/features/projects/model/project_model.dart';
+import '../../position/model/position_model.dart';
+import '../controller/project_controller.dart';
+import '../model/project_model.dart';
 
 class ProjectListViewModel extends ChangeNotifier {
   List<Project> projetos = [];

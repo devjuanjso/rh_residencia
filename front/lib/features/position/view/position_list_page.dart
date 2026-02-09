@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rh_app/core/components/loading_overlay.dart';
-import 'package:rh_app/core/layout/empty_state.dart';
-import 'package:rh_app/core/layout/error_state.dart';
-import 'package:rh_app/features/position/components/position_card.dart';
-import 'package:rh_app/features/position/model/position_model.dart';
-import 'package:rh_app/features/position/viewmodel/position_list_viewmodel.dart';
+import '../../../core/components/loading_overlay.dart';
+import '../../../core/layout/empty_state.dart';
+import '../../../core/layout/error_state.dart';
+import '../components/position_card.dart';
+import '../model/position_model.dart';
+import '../viewmodel/position_list_viewmodel.dart';
 import 'position_form_page.dart';
 import 'position_detail_page.dart';
 

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:rh_app/core/components/loading_overlay.dart';
-import 'package:rh_app/core/layout/empty_state.dart';
-import 'package:rh_app/features/projects/components/project_card.dart';
-import 'package:rh_app/features/projects/components/position_list_item.dart';
-import 'package:rh_app/features/position/model/position_model.dart';
-import 'package:rh_app/features/position/view/position_form_page.dart';
-import 'package:rh_app/features/position/view/position_detail_page.dart';
-import 'package:rh_app/features/projects/model/project_model.dart';
-import 'package:rh_app/features/projects/controller/project_controller.dart';
+import '../../../core/components/loading_overlay.dart';
+import '../../../core/layout/empty_state.dart';
+import '../components/project_card.dart';
+import '../components/position_list_item.dart';
+import '../../position/model/position_model.dart';
+import '../../position/view/position_form_page.dart';
+import '../../position/view/position_detail_page.dart';
+import '../model/project_model.dart';
+import '../controller/project_controller.dart';
 
 class ProjectDetailPage extends StatefulWidget {
   final Project project;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rh_app/features/projects/model/project_model.dart';
-import 'package:rh_app/features/projects/view/project_detail_page.dart';
-import 'package:rh_app/features/projects/view/project_form_page.dart';
-import 'package:rh_app/features/projects/viewmodel/project_list_viewmodel.dart';
-import 'package:rh_app/features/position/viewmodel/position_list_viewmodel.dart';
+import '../projects/model/project_model.dart';
+import '../projects/view/project_detail_page.dart';
+import '../projects/view/project_form_page.dart';
+import '../projects/viewmodel/project_list_viewmodel.dart';
+import '../position/viewmodel/position_list_viewmodel.dart';
 
 class MyProjectsPage extends StatelessWidget {
   const MyProjectsPage({super.key});
