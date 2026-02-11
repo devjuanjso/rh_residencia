@@ -11,15 +11,5 @@ class Candidatura(models.Model):
 
     data = models.DateTimeField(auto_now_add=True)
 
-    status = models.CharField(
-        max_length=20,
-        choices=[
-            ("pendente", "Pendente"),
-            ("aprovado", "Aprovado"),
-            ("reprovado", "Reprovado"),
-        ],
-        default="pendente"
-    )
-
     def __str__(self):
         return f"{self.colaborador.nome} → {self.vaga.titulo}"
