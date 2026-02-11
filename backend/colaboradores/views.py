@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from .models import Colaborador
 from .serializers import ColaboradorSerializer
-from .ai.pipeline import analisar_curriculo
+import requests
 
 
 # Isso aqui é para mostar as rotas na principal
@@ -28,16 +28,33 @@ class ColaboradorViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        resultado = analisar_curriculo(file)
-
-        # Se a IA retornar erro, já repassa
-        if "erro" in resultado:
-            return Response(
-                resultado,
-                status=status.HTTP_400_BAD_REQUEST
+        try:
+            response = requests.post(
+                "http://ai-service:8001/curriculo/analisar",
+                files={"file": file},
+                timeout=300
             )
 
-        #  Apenas retorna a sugestão da IA
+            resultado = response.json()
+
+        except requests.exceptions.ConnectionError:
+            return Response(
+                {"erro": "Não foi possível conectar ao serviço de IA"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        except requests.exceptions.Timeout:
+            return Response(
+                {"erro": "Timeout ao chamar serviço de IA"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        if response.status_code != 200:
+            return Response(
+                resultado,
+                status=response.status_code
+            )
+
         return Response(
             {
                 "sugestao_ia": resultado

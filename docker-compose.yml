@@ -9,6 +9,19 @@ services:
       - "8000:8000"
     depends_on:
       - ollama
+      - ai-service
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+    networks:
+      - rh-net
+
+  ai-service:
+    build: ./ai-service
+    container_name: ai-service
+    ports:
+      - "8001:8001"
+    depends_on:
+      - ollama
     environment:
       - OLLAMA_URL=http://ollama:11434
     networks:
@@ -21,6 +34,13 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    command: >
+      sh -c "
+        ollama serve &
+        sleep 5 &&
+        ollama pull llama3.2:3b &&
+        wait
+      "
     networks:
       - rh-net
 
