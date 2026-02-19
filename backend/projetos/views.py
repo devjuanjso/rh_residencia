@@ -18,6 +18,18 @@ class ProjetoListView(generics.ListAPIView):
     queryset = Projeto.objects.all()
     serializer_class = ProjetoSerializer
 
+class ProjetoListView(generics.ListAPIView):
+    serializer_class = ProjetoSerializer
+
+    def get_queryset(self):
+        queryset = Projeto.objects.all()
+        publicado = self.request.query_params.get('publicado')
+
+        if publicado == 'true':
+            queryset = queryset.filter(rascunho=False)
+
+        return queryset
+
 class ProjetoRetrieveView(generics.RetrieveAPIView):
     queryset = Projeto.objects.all()
     serializer_class = ProjetoSerializer

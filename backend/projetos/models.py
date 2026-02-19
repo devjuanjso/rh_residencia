@@ -10,6 +10,7 @@ class Projeto(models.Model):
 
     imagem = models.ImageField(upload_to="projetos/", blank=True, null=True)
 
+    rascunho = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
