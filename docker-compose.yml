@@ -1,4 +1,7 @@
+version: "3.9"
+
 services:
+
   backend:
     build: ./backend
     container_name: django-backend
@@ -15,9 +18,11 @@ services:
     networks:
       - rh-net
 
+
   ai-service:
     build: ./ai-service
     container_name: ai-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8001
     ports:
       - "8001:8001"
     depends_on:
@@ -27,6 +32,8 @@ services:
     networks:
       - rh-net
 
+
+  # Servidor Ollama
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -34,18 +41,34 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    command: >
-      sh -c "
-        ollama serve &
-        sleep 5 &&
-        ollama pull llama3.2:3b &&
-        wait
+    networks:
+      - rh-net
+
+
+  # Serviço que baixa o modelo automaticamente
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: >
+      /bin/sh -c "
+      echo '⏳ Aguardando Ollama iniciar...';
+      until ollama list > /dev/null 2>&1; do
+        sleep 2;
+      done;
+      echo '📦 Baixando modelo llama3.2:3b...';
+      ollama pull llama3.2:3b;
+      echo '✅ Modelo baixado com sucesso!';
       "
     networks:
       - rh-net
 
+
 volumes:
   ollama_data:
+
 
 networks:
   rh-net:
