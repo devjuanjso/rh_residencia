@@ -4,6 +4,7 @@ from vagas.models import Vaga
 from .services import recomendar_por_vaga
 from .serializers import RecomendacaoCandidaturaSerializer
 
+
 class RecomendacaoViewSet(viewsets.ViewSet):
     """
     GET /recomendacoes/?vaga=<uuid>

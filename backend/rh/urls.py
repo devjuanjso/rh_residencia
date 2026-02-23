@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from django.http import JsonResponse
 
+from accounts.views import RegisterView, UserViewSet
 from projetos.views import ProjetoViewSet
 from vagas.views import VagaViewSet
 from colaboradores.views import ColaboradorViewSet
@@ -17,15 +18,17 @@ router.register(r'vagas', VagaViewSet, basename='vaga')
 router.register(r'colaboradores', ColaboradorViewSet, basename='colaborador')
 router.register(r'candidaturas', CandidaturaViewSet, basename='candidatura')
 router.register(r'recomendacoes', RecomendacaoViewSet, basename='recomendacao')
+router.register(r'users', UserViewSet, basename='user')
 
-def ping(request):
-    print('PING RECEBIDO DO FLUTTER')
-    return JsonResponse({"status": "ok"})
+# def ping(request):
+#     print('PING RECEBIDO DO FLUTTER')
+#     return JsonResponse({"status": "ok"})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
-    path('ping/', ping),
+    # path('ping/', ping),
+    path('register/', RegisterView.as_view(), name='register'),
 ]
 
 
