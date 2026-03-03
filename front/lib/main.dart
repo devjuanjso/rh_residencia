@@ -6,29 +6,65 @@ import 'package:front/features/projects/viewmodel/project_form_viewmodel.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 
+import 'features/auth/view/login_page.dart';
+import 'features/auth/viewmodel/auth_viewmodel.dart';
 
-void main() {
-  runApp(const RHApp());
+Future<void> main() async {
+  // Garante que bindings do Flutter estejam inicializados
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Instancia o AuthViewModel e tenta restaurar sessão salva
+  final authViewModel = AuthViewModel();
+  await authViewModel.loadUserFromStorage();
+
+  runApp(
+    RHApp(authViewModel: authViewModel),
+  );
 }
 
 class RHApp extends StatelessWidget {
-  const RHApp({super.key});
+  final AuthViewModel authViewModel;
+
+  const RHApp({
+    super.key,
+    required this.authViewModel,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ProjectFormViewModel()),
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'RH',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
+        ChangeNotifierProvider<ProjectFormViewModel>(
+          create: (_) => ProjectFormViewModel(),
         ),
-        home: const HomePage(),
+        ChangeNotifierProvider<AuthViewModel>.value(
+          value: authViewModel,
+        ),
+      ],
+      child: const MyApp(),
+    );
+  }
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthViewModel>();
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'RH',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
       ),
+
+      // Define tela inicial com base no estado de autenticação
+      home: auth.isAuthenticated
+          ? const HomePage()
+          : const LoginPage(),
     );
   }
 }
@@ -45,10 +81,10 @@ class _HomePageState extends State<HomePage> {
       PersistentTabController(initialIndex: 0);
 
   List<Widget> _buildScreens() {
-    return [
-      const ProjectListPage(),
-      const MatchsViewPage(),
-      const ProfilePage(),
+    return const [
+      ProjectListPage(),
+      MatchsViewPage(),
+      ProfilePage(),
     ];
   }
 

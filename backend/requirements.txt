@@ -1,6 +1,7 @@
 # Framework web
 Django==6.0
 djangorestframework==3.16.1
+djangorestframework-simplejwt==5.5.1
 
 # Servidor WSGI / produção
 gunicorn==23.0.0

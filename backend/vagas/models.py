@@ -1,4 +1,5 @@
 import uuid
+from django.conf import settings
 from django.db import models
 from projetos.models import Projeto
 
@@ -13,6 +14,12 @@ class Vaga(models.Model):
     habilidades_requeridas = models.JSONField(default=list)
     certificacoes_requeridas = models.JSONField(default=list)
     formacao_desejada = models.CharField(max_length=200, blank=True, null=True)
+
+    criado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="vagas_criadas"
+    )
 
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
