@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:front/features/matchs/matchs_view_page.dart';
 import 'package:front/features/profile/profile_page.dart';
+import 'package:front/features/profile/viewmodel/profile_viewmodel.dart';
 import 'package:front/features/projects/view/project_list_page.dart';
 import 'package:front/features/projects/viewmodel/project_form_viewmodel.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
@@ -39,6 +40,9 @@ class RHApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<AuthViewModel>.value(
           value: authViewModel,
+        ),
+        ChangeNotifierProvider<ProfileViewModel>(
+          create: (_) => ProfileViewModel(),
         ),
       ],
       child: const MyApp(),
