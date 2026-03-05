@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/features/matchs/matchs_view_page.dart';
-import 'package:front/features/profile/profile_page.dart';
+import 'package:front/features/profile/view/profile_page.dart';
 import 'package:front/features/profile/viewmodel/profile_viewmodel.dart';
 import 'package:front/features/projects/view/project_list_page.dart';
 import 'package:front/features/projects/viewmodel/project_form_viewmodel.dart';

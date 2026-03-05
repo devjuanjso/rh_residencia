@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:front/features/profile/controller/profile_controller.dart';
+import 'package:front/features/profile/view/edit_profile_page.dart';
 import 'package:front/features/profile/viewmodel/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:front/features/auth/view/login_page.dart';
+import 'package:front/features/auth/viewmodel/auth_viewmodel.dart';
 import 'my_projects_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -16,9 +19,39 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    final viewModel = context.read<ProfileViewModel>();
-    final controller = ProfileController(viewModel);
-    controller.init();
+    // Delay da inicialização para depois do primeiro frame para evitar
+    // setState/notifyListeners durante a fase de build.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final viewModel = context.read<ProfileViewModel>();
+      final controller = ProfileController(viewModel);
+
+      try {
+        await controller.init();
+      } catch (e) {
+        // Checa mensagens comuns de token expirado / sessão expirada
+        final msg = e.toString().toLowerCase();
+        final isSessionExpired = msg.contains('expir') || msg.contains('token_not_valid') || msg.contains('sessão expirada') || msg.contains('session');
+
+        if (isSessionExpired) {
+          // Limpa tokens e força retorno para tela de login
+          await context.read<AuthViewModel>().logout();
+
+          if (context.mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+              (route) => false,
+            );
+          }
+        } else {
+          // Se for outro erro, mostra snackbar para desenvolvedor/usuário
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erro ao carregar perfil: $e')),
+            );
+          }
+        }
+      }
+    });
   }
 
   @override
@@ -144,8 +177,37 @@ class _ProfilePageState extends State<ProfilePage> {
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const EditProfilePage(),
+                              ),
+                            );
+                          },
                           child: const Text("Editar Perfil"),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Botão para deslogar (desfazer login)
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            await context.read<AuthViewModel>().logout();
+                            if (context.mounted) {
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(builder: (_) => const LoginPage()),
+                                (route) => false,
+                              );
+                            }
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.red.shade300),
+                          ),
+                          child: const Text("Sair"),
                         ),
                       ),
                     ],

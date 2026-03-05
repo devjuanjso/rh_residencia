@@ -13,14 +13,28 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=["get"], url_path="me")
+    @action(detail=False, methods=["get", "patch"], url_path="me")
     def me(self, request):
         """
-        Retorna os dados do usuário autenticado.
-        Requer header Authorization: Bearer <access_token>
+        GET  -> Retorna usuário autenticado
+        PATCH -> Atualiza usuário autenticado
         """
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
+
+        if request.method == "GET":
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
+
+        if request.method == "PATCH":
+            serializer = self.get_serializer(
+                request.user,
+                data=request.data,
+                partial=True  # Permite atualizar parcialmente
+            )
+
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            return Response(serializer.data)
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
