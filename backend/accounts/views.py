@@ -8,6 +8,13 @@ from rest_framework.response import Response
 User = get_user_model()
 
 
+def format_choices(choices):
+    """
+    Converte choices do Django para formato amigável para frontend
+    """
+    return [{"value": c[0], "label": c[1]} for c in choices]
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -35,6 +42,19 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
 
             return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], url_path="choices", permission_classes=[AllowAny])
+    def choices(self, request):
+        """
+        Retorna todas as opções de selects usadas no User
+        """
+        return Response({
+            "roles": format_choices(User.RoleChoices.choices),
+            "cargos": format_choices(User.CargoChoices.choices),
+            "senioridades": format_choices(User.SenioridadeChoices.choices),
+            "areas": format_choices(User.AreaChoices.choices),
+        })
+
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()

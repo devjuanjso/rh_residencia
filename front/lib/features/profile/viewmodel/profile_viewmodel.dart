@@ -8,13 +8,18 @@ class ProfileViewModel extends ChangeNotifier {
   ProfileModel? _profile;
   bool _isLoading = false;
 
-  // Controllers usados para digitar habilidades e certificações
+  // Controllers para entrada de habilidades e certificações
   final TextEditingController habilidadeController = TextEditingController();
   final TextEditingController certificacaoController = TextEditingController();
 
-  // Listas internas editáveis
+  // Listas editáveis
   final List<String> _habilidades = [];
   final List<String> _certificacoes = [];
+
+  // Choices vindos da API
+  List<Map<String, dynamic>> cargos = [];
+  List<Map<String, dynamic>> senioridades = [];
+  List<Map<String, dynamic>> areas = [];
 
   // Getters públicos
   ProfileModel? get profile => _profile;
@@ -23,9 +28,7 @@ class ProfileViewModel extends ChangeNotifier {
   List<String> get habilidades => _habilidades;
   List<String> get certificacoes => _certificacoes;
 
-  /*
-  Carrega o perfil do usuário a partir da API
-  */
+  // Carrega o perfil do usuário da API
   Future<void> loadProfile() async {
     _isLoading = true;
     notifyListeners();
@@ -34,7 +37,6 @@ class ProfileViewModel extends ChangeNotifier {
       final data = await _service.getProfile();
       _profile = ProfileModel.fromJson(data);
 
-      // Inicializa listas editáveis com dados do perfil
       initForm(_profile!);
     } catch (e) {
       rethrow;
@@ -44,9 +46,22 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /*
-  Inicializa as listas usadas no formulário
-  */
+  // Carrega as opções de cargo, senioridade e área
+  Future<void> loadChoices() async {
+    try {
+      final data = await _service.getChoices();
+
+      cargos = List<Map<String, dynamic>>.from(data["cargos"] ?? []);
+      senioridades = List<Map<String, dynamic>>.from(data["senioridades"] ?? []);
+      areas = List<Map<String, dynamic>>.from(data["areas"] ?? []);
+
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Inicializa listas do formulário com dados do perfil
   void initForm(ProfileModel profile) {
     _habilidades
       ..clear()
@@ -59,9 +74,7 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /*
-  Adiciona uma nova habilidade à lista
-  */
+  // Adiciona uma habilidade
   void addHabilidade() {
     final value = habilidadeController.text.trim();
 
@@ -73,17 +86,13 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /*
-  Remove uma habilidade específica
-  */
+  // Remove uma habilidade
   void removeHabilidade(String value) {
     _habilidades.remove(value);
     notifyListeners();
   }
 
-  /*
-  Adiciona uma nova certificação à lista
-  */
+  // Adiciona uma certificação
   void addCertificacao() {
     final value = certificacaoController.text.trim();
 
@@ -95,17 +104,13 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /*
-  Remove uma certificação específica
-  */
+  // Remove uma certificação
   void removeCertificacao(String value) {
     _certificacoes.remove(value);
     notifyListeners();
   }
 
-  /*
-  Atualiza o perfil do usuário na API
-  */
+  // Envia atualização do perfil para a API
   Future<void> updateProfile({
     required String cargo,
     required String senioridade,
@@ -127,7 +132,6 @@ class ProfileViewModel extends ChangeNotifier {
         "certificacoes": _certificacoes,
       });
 
-      // Recarrega os dados atualizados
       await loadProfile();
     } catch (e) {
       rethrow;
@@ -137,9 +141,7 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /*
-  Libera os controllers ao destruir o ViewModel
-  */
+  // Libera os controllers ao destruir o ViewModel
   @override
   void dispose() {
     habilidadeController.dispose();

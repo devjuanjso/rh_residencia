@@ -19,9 +19,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController formacaoController;
   late TextEditingController bioController;
 
-  /*
-  Inicializa os controllers com os dados atuais do perfil
-  */
+  String? selectedCargo;
+  String? selectedSenioridade;
+  String? selectedArea;
+
+  // Inicializa controllers com dados do perfil
   @override
   void initState() {
     super.initState();
@@ -35,13 +37,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
     formacaoController = TextEditingController(text: profile.formacao);
     bioController = TextEditingController(text: profile.bio);
 
-    // Inicializa listas editáveis no ViewModel
+    selectedCargo = profile.cargo;
+    selectedSenioridade = profile.senioridade;
+    selectedArea = profile.area;
+
     vm.initForm(profile);
+    vm.loadChoices();
   }
 
-  /*
-  Constrói a tela principal
-  */
+  // Constrói a interface da tela
   @override
   Widget build(BuildContext context) {
 
@@ -63,15 +67,45 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 child: ListView(
                   children: [
 
-                    _buildField("Cargo", cargoController),
-                    _buildField("Senioridade", senioridadeController),
-                    _buildField("Área", areaController),
+                    _buildDropdown(
+                      "Cargo",
+                      viewModel.cargos,
+                      selectedCargo,
+                      (value) {
+                        setState(() {
+                          selectedCargo = value;
+                        });
+                      },
+                    ),
+
+                    _buildDropdown(
+                      "Senioridade",
+                      viewModel.senioridades,
+                      selectedSenioridade,
+                      (value) {
+                        setState(() {
+                          selectedSenioridade = value;
+                        });
+                      },
+                    ),
+
+                    _buildDropdown(
+                      "Área",
+                      viewModel.areas,
+                      selectedArea,
+                      (value) {
+                        setState(() {
+                          selectedArea = value;
+                        });
+                      },
+                    ),
+
                     _buildField("Formação", formacaoController),
                     _buildField("Bio", bioController, maxLines: 3),
 
                     const SizedBox(height: 24),
 
-                    // Campo de habilidades
+                    // Seção de habilidades
                     _buildSkillSection(
                       "Habilidades",
                       viewModel.habilidadeController,
@@ -82,7 +116,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                     const SizedBox(height: 24),
 
-                    // Campo de certificações
+                    // Seção de certificações
                     _buildSkillSection(
                       "Certificações",
                       viewModel.certificacaoController,
@@ -93,18 +127,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                     const SizedBox(height: 30),
 
-                    /*
-                    Botão de salvar perfil
-                    */
+                    // Botão para salvar alterações
                     ElevatedButton(
                       onPressed: () async {
 
                         if (_formKey.currentState!.validate()) {
 
                           await viewModel.updateProfile(
-                            cargo: cargoController.text,
-                            senioridade: senioridadeController.text,
-                            area: areaController.text,
+                            cargo: selectedCargo ?? "",
+                            senioridade: selectedSenioridade ?? "",
+                            area: selectedArea ?? "",
                             formacao: formacaoController.text,
                             bio: bioController.text,
                           );
@@ -123,9 +155,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  /*
-  Campo padrão de formulário
-  */
+  // Campo padrão do formulário
   Widget _buildField(
     String label,
     TextEditingController controller,
@@ -157,9 +187,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  /*
-  Seção dinâmica de habilidades ou certificações
-  */
+  // Dropdown para seleção de opções
+  Widget _buildDropdown(
+    String label,
+    List<Map<String, dynamic>> options,
+    String? value,
+    Function(String?) onChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: DropdownButtonFormField<String>(
+        value: value,
+        items: options
+            .map(
+              (item) => DropdownMenuItem<String>(
+                value: item["value"],
+                child: Text(item["label"]),
+              ),
+            )
+            .toList(),
+        onChanged: onChanged,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return "Campo obrigatório";
+          }
+          return null;
+        },
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Seção dinâmica para habilidades ou certificações
   Widget _buildSkillSection(
     String title,
     TextEditingController controller,

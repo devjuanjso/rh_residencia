@@ -95,4 +95,43 @@ class ProfileService {
     throw Exception(
         "Erro ao atualizar perfil: ${response.statusCode} - ${response.body}");
   }
+
+  Future<Map<String, dynamic>> getChoices() async {
+    String? token = await _storage.getToken();
+
+    var response = await http.get(
+      Uri.parse("${Config.baseUrl}/users/choices/"),
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null && token.isNotEmpty)
+          "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      final authService = AuthService();
+      final newToken = await authService.refreshAccessToken();
+
+      if (newToken != null) {
+        response = await http.get(
+          Uri.parse("${Config.baseUrl}/users/choices/"),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $newToken",
+          },
+        );
+
+        if (response.statusCode == 200) {
+          return jsonDecode(response.body) as Map<String, dynamic>;
+        }
+      }
+    }
+
+    throw Exception(
+        "Erro ao buscar opções: ${response.statusCode} - ${response.body}");
+  }
 }
