@@ -10,11 +10,12 @@ class ProjectListViewModel extends ChangeNotifier {
   bool loadingVagas = false;
   int projetoAtual = 0;
 
-  Future<void> carregarProjetos() async {
+  // Carrega projetos publicados
+  Future<void> carregarProjetosPublicados() async {
     loading = true;
     notifyListeners();
 
-    projetos = await ProjectController.buscarProjetos();
+    projetos = await ProjectController.buscarProjetosPublicados();
 
     loading = false;
     notifyListeners();
@@ -25,6 +26,23 @@ class ProjectListViewModel extends ChangeNotifier {
     }
   }
 
+  // Carrega projetos criados pelo usuário
+  Future<void> carregarMeusProjetos() async {
+    loading = true;
+    notifyListeners();
+
+    projetos = await ProjectController.buscarMeusProjetos();
+
+    loading = false;
+    notifyListeners();
+
+    if (projetos.isNotEmpty) {
+      projetoAtual = 0;
+      await carregarVagasDoProjetoAtual();
+    }
+  }
+
+  // Carrega vagas do projeto atual
   Future<void> carregarVagasDoProjetoAtual() async {
     if (projetos.isEmpty) return;
 
@@ -45,6 +63,7 @@ class ProjectListViewModel extends ChangeNotifier {
     }
   }
 
+  // Define qual projeto está selecionado
   Future<void> setProjetoAtual(int index) async {
     if (index < 0 || index >= projetos.length) return;
     if (index == projetoAtual) return;
@@ -56,6 +75,7 @@ class ProjectListViewModel extends ChangeNotifier {
     await carregarVagasDoProjetoAtual();
   }
 
+  // Avança para o próximo projeto
   Future<void> irParaProximoProjeto() async {
     if (projetos.isEmpty) return;
     if (projetoAtual >= projetos.length - 1) return;

@@ -14,7 +14,8 @@ class MyProjectsPage extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => ProjectListViewModel()..carregarProjetos(),
+          // Carrega apenas projetos do usuário
+          create: (_) => ProjectListViewModel()..carregarMeusProjetos(),
         ),
         ChangeNotifierProvider(create: (_) => PositionListViewModel()),
       ],
@@ -112,9 +113,9 @@ class MyProjectsPage extends StatelessWidget {
                         child: Icon(Icons.folder, size: 40, color: Colors.grey),
                       ),
               ),
-              
+
               const SizedBox(width: 16),
-              
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,9 +129,9 @@ class MyProjectsPage extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     Text(
                       projeto.descricao,
                       style: TextStyle(
@@ -140,9 +141,9 @@ class MyProjectsPage extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     Row(
                       children: [
                         const Icon(Icons.date_range, size: 16, color: Colors.grey),
@@ -159,7 +160,7 @@ class MyProjectsPage extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               const Icon(
                 Icons.chevron_right,
                 color: Colors.grey,
@@ -187,9 +188,10 @@ class MyProjectsPage extends StatelessWidget {
         builder: (context) => const ProjectFormPage(),
       ),
     ).then((value) {
-      // Recarrega a lista de projetos após adicionar um novo
+      // Recarrega projetos do usuário após criar
       if (value == true && context.mounted) {
-        Provider.of<ProjectListViewModel>(context, listen: false).carregarProjetos();
+        Provider.of<ProjectListViewModel>(context, listen: false)
+            .carregarMeusProjetos();
       }
     });
   }

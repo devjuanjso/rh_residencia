@@ -1,53 +1,37 @@
-from rest_framework import generics, viewsets
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
 from .models import Projeto
 from .serializers import ProjetoSerializer
 
 
-# Isso aqui é para mostar as rotas na principal
+# ViewSet principal de projetos
 class ProjetoViewSet(viewsets.ModelViewSet):
+
     queryset = Projeto.objects.all()
     serializer_class = ProjetoSerializer
 
+    # Retorna apenas projetos publicados
+    @action(detail=False, methods=["get"], url_path="publicados")
+    def publicados(self, request):
 
-class ProjetoListCreateView(generics.ListCreateAPIView):
-    queryset = Projeto.objects.all()
-    serializer_class = ProjetoSerializer
+        projetos = Projeto.objects.filter(rascunho=False)
+        serializer = self.get_serializer(projetos, many=True)
 
+        return Response(serializer.data)
 
-class ProjetoListView(generics.ListAPIView):
-    queryset = Projeto.objects.all()
-    serializer_class = ProjetoSerializer
+    # Retorna projetos criados pelo usuário logado
+    @action(
+        detail=False,
+        methods=["get"],
+        permission_classes=[IsAuthenticated],
+        url_path="meus"
+    )
+    def meus(self, request):
 
-class ProjetoListView(generics.ListAPIView):
-    serializer_class = ProjetoSerializer
+        projetos = Projeto.objects.filter(criado_por=request.user)
+        serializer = self.get_serializer(projetos, many=True)
 
-    def get_queryset(self):
-        queryset = Projeto.objects.all()
-        publicado = self.request.query_params.get('publicado')
-
-        if publicado == 'true':
-            queryset = queryset.filter(rascunho=False)
-
-        return queryset
-
-class ProjetoRetrieveView(generics.RetrieveAPIView):
-    queryset = Projeto.objects.all()
-    serializer_class = ProjetoSerializer
-
-class ProjetoUpdateView(generics.UpdateAPIView):
-    queryset = Projeto.objects.all()
-    serializer_class = ProjetoSerializer
-
-# Futuramente implementa Soft Delete
-class ProjetoDeleteView(generics.DestroyAPIView):
-    queryset = Projeto.objects.all()
-    serializer_class = ProjetoSerializer
-
-class ProjetoDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Projeto.objects.all()
-    serializer_class = ProjetoSerializer
-
-class ProjetoPartialUpdateView(generics.UpdateAPIView):
-    queryset = Projeto.objects.all()
-    serializer_class = ProjetoSerializer
-    http_method_names = ["patch"]
+        return Response(serializer.data)

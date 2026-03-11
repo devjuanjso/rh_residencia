@@ -12,7 +12,8 @@ class ProjectListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ProjectListViewModel()..carregarProjetos(),
+      // Carrega apenas projetos publicados
+      create: (_) => ProjectListViewModel()..carregarProjetosPublicados(),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Projetos'),
