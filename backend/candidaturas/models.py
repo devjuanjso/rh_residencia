@@ -14,3 +14,5 @@ class Candidatura(models.Model):
 
     def __str__(self):
         return f"{self.usuario.nome} → {self.vaga.titulo}"
+    class Meta:
+            unique_together = ["usuario", "vaga"]

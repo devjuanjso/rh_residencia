@@ -12,7 +12,6 @@ class ProjectListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      // Carrega apenas projetos publicados
       create: (_) => ProjectListViewModel()..carregarProjetosPublicados(),
       child: Scaffold(
         appBar: AppBar(
@@ -28,7 +27,6 @@ class ProjectListPage extends StatelessWidget {
     );
   }
 
-  // Conteúdo principal baseado no estado do viewmodel
   Widget _buildBodyContent(ProjectListViewModel vm) {
     if (vm.loading && vm.projetos.isEmpty) {
       return _buildLoadingState();
@@ -41,12 +39,10 @@ class ProjectListPage extends StatelessWidget {
     return _buildProjectPager(vm);
   }
 
-  // Estado de carregamento inicial
   Widget _buildLoadingState() {
     return const Center(child: CircularProgressIndicator());
   }
 
-  // Estado quando não há projetos
   Widget _buildEmptyProjectsState() {
     return const EmptyState(
       icon: Icons.work_outline,
@@ -55,7 +51,6 @@ class ProjectListPage extends StatelessWidget {
     );
   }
 
-  // Visualizador de projetos com páginas verticais
   Widget _buildProjectPager(ProjectListViewModel vm) {
     final projeto = vm.projetos[vm.projetoAtual];
 
@@ -68,7 +63,6 @@ class ProjectListPage extends StatelessWidget {
     );
   }
 
-  // Página de detalhes do projeto
   Widget _buildProjectDetailsPage(ProjectListViewModel vm, projeto) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -87,7 +81,6 @@ class ProjectListPage extends StatelessWidget {
     );
   }
 
-  // Página de vagas do projeto
   Widget _buildProjectPositionsPage(ProjectListViewModel vm, projeto) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -103,7 +96,6 @@ class ProjectListPage extends StatelessWidget {
     );
   }
 
-  // Título da página de vagas
   Widget _buildPositionsTitle(String nomeProjeto) {
     return Text(
       'Vagas de $nomeProjeto',
@@ -114,7 +106,6 @@ class ProjectListPage extends StatelessWidget {
     );
   }
 
-  // Lista de vagas disponíveis
   Widget _buildPositionsList(ProjectListViewModel vm) {
     return LoadingOverlay(
       isLoading: vm.loadingVagas,
@@ -125,7 +116,6 @@ class ProjectListPage extends StatelessWidget {
     );
   }
 
-  // Estado quando não há vagas no projeto
   Widget _buildEmptyPositionsState() {
     return const EmptyState(
       icon: Icons.work_outline,
@@ -134,32 +124,50 @@ class ProjectListPage extends StatelessWidget {
     );
   }
 
-  // Lista de itens de vagas
   Widget _buildPositionsListView(ProjectListViewModel vm) {
     return ListView.builder(
       itemCount: vm.vagasDoProjeto.length,
       itemBuilder: (context, index) {
         final vaga = vm.vagasDoProjeto[index];
-        return _buildPositionListItem(vaga);
+        return _buildPositionListItem(context, vaga);
       },
     );
   }
 
-  // Item individual da vaga
-  Widget _buildPositionListItem(vaga) {
+  Widget _buildPositionListItem(BuildContext context, vaga) {
+    final vm = context.watch<ProjectListViewModel>();
+    final jaCandidatado = vm.jaSeCandidatou(vaga.id);
+
     return PositionListItem(
       position: vaga,
-      onApply: () {
-        // Ação temporária para debug
-        print('Botão Candidatar-se clicado para: ${vaga.titulo}');
-      },
+      applied: jaCandidatado,
+      onApply: jaCandidatado
+          ? null
+          : () async {
+              try {
+                final sucesso = await vm.candidatarSe(vaga.id);
+
+                if (sucesso) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Candidatura enviada com sucesso!"),
+                    ),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Erro: $e"),
+                  ),
+                );
+              }
+            },
       showActions: true,
       showEducation: false,
       showCertifications: false,
     );
   }
 
-  // Botão para próximo projeto
   Widget _buildNextProjectButton(ProjectListViewModel vm) {
     return SizedBox(
       width: double.infinity,
@@ -184,7 +192,6 @@ class ProjectListPage extends StatelessWidget {
     );
   }
 
-  // Indicador de navegação por swipe
   Widget _buildSwipeHint() {
     return const Text(
       'Arraste para baixo para ver as vagas',

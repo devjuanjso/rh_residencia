@@ -1,0 +1,61 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:front/core/services/http_service.dart';
+import 'package:front/core/services/secure_storage_service.dart';
+
+class CandidaturaController {
+
+  final SecureStorageService _storage = SecureStorageService();
+
+  Future<bool> candidatarSe({required String vagaId}) async {
+
+    final token = await _storage.getToken();
+
+    if (token == null) {
+      throw Exception("Usuário não autenticado");
+    }
+
+    final response = await http.post(
+      Uri.parse('${Config.baseUrl}/candidaturas/'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({
+        "vaga": vagaId,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return true;
+    }
+
+    if (response.statusCode == 400) {
+      final data = jsonDecode(response.body);
+      throw Exception(data.toString());
+    }
+
+    throw Exception("Erro ao se candidatar");
+  }
+
+  Future<List<String>> minhasCandidaturas() async {
+
+    final token = await _storage.getToken();
+
+    final response = await http.get(
+      Uri.parse('${Config.baseUrl}/candidaturas/minhas/'),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+
+      final List data = jsonDecode(response.body);
+
+      return data.map((e) => e.toString()).toList();
+    }
+
+    return [];
+  }
+}

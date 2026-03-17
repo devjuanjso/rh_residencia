@@ -10,6 +10,7 @@ class PositionListItem extends StatelessWidget {
   final bool showActions;
   final bool showEducation;
   final bool showCertifications;
+  final bool applied;
 
   const PositionListItem({
     super.key,
@@ -21,6 +22,7 @@ class PositionListItem extends StatelessWidget {
     this.showActions = true,
     this.showEducation = false,
     this.showCertifications = false,
+    this.applied = false,
   });
 
   @override
@@ -135,21 +137,22 @@ class PositionListItem extends StatelessWidget {
 
   // Botão Candidatar-se
   Widget _buildApplyButton() {
-    if (onApply == null) {
+    if (onApply == null && !applied) {
       return const SizedBox.shrink();
     }
 
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ElevatedButton(
-        onPressed: onApply,
+      child: ElevatedButton.icon(
+        onPressed: applied ? null : onApply,
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 8,
           ),
         ),
-        child: const Text('Candidatar-se'),
+        icon: Icon(applied ? Icons.description : Icons.send),
+        label: Text(applied ? 'Enviado' : 'Candidatar-se'),
       ),
     );
   }

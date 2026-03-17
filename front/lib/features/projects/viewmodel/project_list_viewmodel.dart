@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/features/candidatura/controller/candidatura_controller.dart';
 import '../../position/model/position_model.dart';
 import '../controller/project_controller.dart';
 import '../model/project_model.dart';
@@ -10,10 +11,16 @@ class ProjectListViewModel extends ChangeNotifier {
   bool loadingVagas = false;
   int projetoAtual = 0;
 
+  Set<String> vagasCandidatadas = {};
+
+  final CandidaturaController _candidaturaController = CandidaturaController();
+
   // Carrega projetos publicados
   Future<void> carregarProjetosPublicados() async {
     loading = true;
     notifyListeners();
+
+    await carregarMinhasCandidaturas();
 
     projetos = await ProjectController.buscarProjetosPublicados();
 
@@ -30,6 +37,8 @@ class ProjectListViewModel extends ChangeNotifier {
   Future<void> carregarMeusProjetos() async {
     loading = true;
     notifyListeners();
+
+    await carregarMinhasCandidaturas();
 
     projetos = await ProjectController.buscarMeusProjetos();
 
@@ -85,5 +94,44 @@ class ProjectListViewModel extends ChangeNotifier {
     notifyListeners();
 
     await carregarVagasDoProjetoAtual();
+  }
+
+  // Realiza candidatura em uma vaga
+  Future<bool> candidatarSe(String vagaId) async {
+    try {
+      if (vagasCandidatadas.contains(vagaId)) {
+        return false;
+      }
+
+      final sucesso = await _candidaturaController.candidatarSe(
+        vagaId: vagaId,
+      );
+
+      if (sucesso) {
+        vagasCandidatadas.add(vagaId);
+        notifyListeners();
+      }
+
+      return sucesso;
+    } catch (e) {
+      print("Erro ao candidatar: $e");
+      rethrow;
+    }
+  }
+
+  // Carrega vagas que o usuário já se candidatou
+  Future<void> carregarMinhasCandidaturas() async {
+    try {
+      final vagas = await _candidaturaController.minhasCandidaturas();
+      vagasCandidatadas = vagas.toSet();
+      notifyListeners();
+    } catch (e) {
+      print("Erro ao carregar candidaturas: $e");
+    }
+  }
+
+  // Verifica se o usuário já se candidatou a uma vaga
+  bool jaSeCandidatou(String vagaId) {
+    return vagasCandidatadas.contains(vagaId);
   }
 }
