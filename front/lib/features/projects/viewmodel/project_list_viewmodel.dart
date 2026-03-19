@@ -130,7 +130,6 @@ class ProjectListViewModel extends ChangeNotifier {
     }
   }
 
-  // Verifica se o usuário já se candidatou a uma vaga
   bool jaSeCandidatou(String vagaId) {
     return vagasCandidatadas.contains(vagaId);
   }

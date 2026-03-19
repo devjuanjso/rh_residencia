@@ -1,10 +1,11 @@
 from rest_framework import generics, viewsets
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from .models import Candidatura
 from .serializers import CandidaturaSerializer
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
 
-# Isso aqui é para mostar as rotas na principal
+
 class CandidaturaViewSet(viewsets.ModelViewSet):
     queryset = Candidatura.objects.all()
     serializer_class = CandidaturaSerializer
@@ -19,7 +20,8 @@ class CandidaturaViewSet(viewsets.ModelViewSet):
             usuario=request.user
         ).values_list("vaga", flat=True)
 
-        return Response(list(vagas))
+        return Response([str(v) for v in vagas])
+
 
 class CandidaturaListCreateView(generics.ListCreateAPIView):
     queryset = Candidatura.objects.all()
@@ -48,7 +50,6 @@ class CandidaturaUpdateView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-# Futuramente implementa Soft Delete
 class CandidaturaDeleteView(generics.DestroyAPIView):
     queryset = Candidatura.objects.all()
     serializer_class = CandidaturaSerializer

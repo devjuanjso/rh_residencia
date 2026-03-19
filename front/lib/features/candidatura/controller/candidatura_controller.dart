@@ -39,23 +39,23 @@ class CandidaturaController {
   }
 
   Future<List<String>> minhasCandidaturas() async {
+  final token = await _storage.getToken();
 
-    final token = await _storage.getToken();
+  final response = await http.get(
+    Uri.parse('${Config.baseUrl}/candidaturas/minhas/'),
+    headers: {
+      "Authorization": "Bearer $token",
+    },
+  );
 
-    final response = await http.get(
-      Uri.parse('${Config.baseUrl}/candidaturas/minhas/'),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
-    );
+  print("=== STATUS: ${response.statusCode}");
+  print("=== BODY: ${response.body}"); // <--
 
-    if (response.statusCode == 200) {
-
-      final List data = jsonDecode(response.body);
-
-      return data.map((e) => e.toString()).toList();
-    }
-
-    return [];
+  if (response.statusCode == 200) {
+    final List data = jsonDecode(response.body);
+    return data.map<String>((e) => e.toString()).toList();
   }
+
+  return [];
+}
 }
