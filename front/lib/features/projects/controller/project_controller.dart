@@ -21,45 +21,51 @@ class ProjectController {
   }
 
   // Cria um novo projeto
-  static Future<String?> criarProjeto({
-    required String nome,
-    required String descricao,
-    File? imagem,
-  }) async {
-    try {
+ static Future<String?> criarProjeto({
+  required String nome,
+  required String descricao,
+  File? imagem,
+}) async {
+  try {
+    final uri = Uri.parse('${Config.baseUrl}/projetos/');
+    final token = await _storage.getToken();
 
-      final uri = Uri.parse('${Config.baseUrl}/projetos/');
-      final token = await _storage.getToken();
+    print('=== CRIAR PROJETO ===');
+    print('URL: $uri');
+    print('Nome: $nome');
+    print('Descrição: $descricao');
+    print('Imagem: ${imagem?.path}');
 
-      final request = http.MultipartRequest('POST', uri);
+    final request = http.MultipartRequest('POST', uri);
+    request.headers['Authorization'] = 'Bearer $token';
+    request.fields['nome'] = nome;
+    request.fields['descricao'] = descricao;
 
-      request.headers['Authorization'] = 'Bearer $token';
-
-      request.fields['nome'] = nome;
-      request.fields['descricao'] = descricao;
-
-      if (imagem != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath('imagem', imagem.path),
-        );
-      }
-
-      final response = await request.send();
-      final body = await response.stream.bytesToString();
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final data = jsonDecode(body);
-        return data['id']?.toString();
-      }
-
-      return null;
-
-    } catch (e) {
-      print('Erro ao criar projeto: $e');
-      return null;
+    if (imagem != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('imagem', imagem.path),
+      );
     }
-  }
 
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
+
+    print('STATUS: ${response.statusCode}');
+    print('BODY: $body');
+    print('====================');
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final data = jsonDecode(body);
+      return data['id']?.toString();
+    }
+
+    return null;
+
+  } catch (e) {
+    print('Erro ao criar projeto: $e');
+    return null;
+  }
+}
   // Busca um projeto específico pelo ID
   static Future<Project?> buscarProjetoPorId(String projetoId) async {
     try {
