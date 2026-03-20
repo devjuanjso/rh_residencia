@@ -2,6 +2,7 @@ class Position {
   final String id;
   final String titulo;
   final String? descricao;
+  final String? senioridade;
   final List<String> habilidadesRequeridas;
   final List<String> certificacoesRequeridas;
   final String? formacaoDesejada;
@@ -11,6 +12,7 @@ class Position {
     required this.id,
     required this.titulo,
     this.descricao,
+    this.senioridade,
     required this.habilidadesRequeridas,
     required this.certificacoesRequeridas,
     this.formacaoDesejada,
@@ -22,6 +24,7 @@ class Position {
       id: json['id'] ?? '',
       titulo: json['titulo'] ?? '',
       descricao: json['descricao'],
+      senioridade: json['senioridade'],
       habilidadesRequeridas:
           (json['habilidades_requeridas'] as List?)?.cast<String>() ?? [],
       certificacoesRequeridas:

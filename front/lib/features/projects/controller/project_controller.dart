@@ -11,72 +11,65 @@ class ProjectController {
 
   static final SecureStorageService _storage = SecureStorageService();
 
-  // Retorna headers com token de autenticação
   static Future<Map<String, String>> _authHeaders() async {
     final token = await _storage.getToken();
-
     return {
       "Authorization": "Bearer $token",
     };
   }
 
   // Cria um novo projeto
- static Future<String?> criarProjeto({
-  required String nome,
-  required String descricao,
-  File? imagem,
-}) async {
-  try {
-    final uri = Uri.parse('${Config.baseUrl}/projetos/');
-    final token = await _storage.getToken();
+  static Future<String?> criarProjeto({
+    required String nome,
+    required String descricao,
+    File? imagem,
+    String? tipo,
+    DateTime? dataInicio,
+  }) async {
+    try {
+      final uri = Uri.parse('${Config.baseUrl}/projetos/');
+      final token = await _storage.getToken();
 
-    print('=== CRIAR PROJETO ===');
-    print('URL: $uri');
-    print('Nome: $nome');
-    print('Descrição: $descricao');
-    print('Imagem: ${imagem?.path}');
+      final request = http.MultipartRequest('POST', uri);
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['nome'] = nome;
+      request.fields['descricao'] = descricao;
 
-    final request = http.MultipartRequest('POST', uri);
-    request.headers['Authorization'] = 'Bearer $token';
-    request.fields['nome'] = nome;
-    request.fields['descricao'] = descricao;
+      if (tipo != null) request.fields['tipo'] = tipo;
+      if (dataInicio != null) {
+        request.fields['data_inicio'] =
+            dataInicio.toIso8601String().split('T').first; // "yyyy-MM-dd"
+      }
 
-    if (imagem != null) {
-      request.files.add(
-        await http.MultipartFile.fromPath('imagem', imagem.path),
-      );
+      if (imagem != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('imagem', imagem.path),
+        );
+      }
+
+      final response = await request.send();
+      final body = await response.stream.bytesToString();
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(body);
+        return data['id']?.toString();
+      }
+
+      return null;
+
+    } catch (e) {
+      print('Erro ao criar projeto: $e');
+      return null;
     }
-
-    final response = await request.send();
-    final body = await response.stream.bytesToString();
-
-    print('STATUS: ${response.statusCode}');
-    print('BODY: $body');
-    print('====================');
-
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      final data = jsonDecode(body);
-      return data['id']?.toString();
-    }
-
-    return null;
-
-  } catch (e) {
-    print('Erro ao criar projeto: $e');
-    return null;
   }
-}
+
   // Busca um projeto específico pelo ID
   static Future<Project?> buscarProjetoPorId(String projetoId) async {
     try {
-
       final headers = await _authHeaders();
       final uri = Uri.parse('${Config.baseUrl}/projetos/$projetoId/');
 
-      final response = await http.get(
-        uri,
-        headers: headers,
-      );
+      final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -98,19 +91,23 @@ class ProjectController {
     required String descricao,
     File? imagem,
     bool? manterImagemAtual,
+    String? tipo,
+    DateTime? dataInicio,
   }) async {
-
     try {
-
       final uri = Uri.parse('${Config.baseUrl}/projetos/$projetoId/');
       final token = await _storage.getToken();
 
       final request = http.MultipartRequest('PUT', uri);
-
       request.headers['Authorization'] = 'Bearer $token';
-
       request.fields['nome'] = nome;
       request.fields['descricao'] = descricao;
+
+      if (tipo != null) request.fields['tipo'] = tipo;
+      if (dataInicio != null) {
+        request.fields['data_inicio'] =
+            dataInicio.toIso8601String().split('T').first;
+      }
 
       if (imagem != null) {
         request.files.add(
@@ -121,7 +118,6 @@ class ProjectController {
       }
 
       final response = await request.send();
-
       return response.statusCode == 200;
 
     } catch (e) {
@@ -136,19 +132,23 @@ class ProjectController {
     String? nome,
     String? descricao,
     File? imagem,
+    String? tipo,
+    DateTime? dataInicio,
   }) async {
-
     try {
-
       final uri = Uri.parse('${Config.baseUrl}/projetos/$projetoId/');
       final token = await _storage.getToken();
 
       final request = http.MultipartRequest('PATCH', uri);
-
       request.headers['Authorization'] = 'Bearer $token';
 
       if (nome != null) request.fields['nome'] = nome;
       if (descricao != null) request.fields['descricao'] = descricao;
+      if (tipo != null) request.fields['tipo'] = tipo;
+      if (dataInicio != null) {
+        request.fields['data_inicio'] =
+            dataInicio.toIso8601String().split('T').first;
+      }
 
       if (imagem != null) {
         request.files.add(
@@ -157,7 +157,6 @@ class ProjectController {
       }
 
       final response = await request.send();
-
       return response.statusCode == 200;
 
     } catch (e) {
@@ -168,17 +167,11 @@ class ProjectController {
 
   // Remove um projeto
   static Future<bool> excluirProjeto(String projetoId) async {
-
     try {
-
       final headers = await _authHeaders();
       final uri = Uri.parse('${Config.baseUrl}/projetos/$projetoId/');
 
-      final response = await http.delete(
-        uri,
-        headers: headers,
-      );
-
+      final response = await http.delete(uri, headers: headers);
       return response.statusCode == 204 || response.statusCode == 200;
 
     } catch (e) {
@@ -189,21 +182,14 @@ class ProjectController {
 
   // Lista projetos publicados
   static Future<List<Project>> buscarProjetosPublicados() async {
-
     try {
-
       final headers = await _authHeaders();
       final uri = Uri.parse('${Config.baseUrl}/projetos/publicados/');
 
-      final response = await http.get(
-        uri,
-        headers: headers,
-      );
+      final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
-
         final List data = jsonDecode(response.body);
-
         return data.map((e) => Project.fromJson(e)).toList();
       }
 
@@ -217,21 +203,14 @@ class ProjectController {
 
   // Lista projetos criados pelo usuário logado
   static Future<List<Project>> buscarMeusProjetos() async {
-
     try {
-
       final headers = await _authHeaders();
       final uri = Uri.parse('${Config.baseUrl}/projetos/meus/');
 
-      final response = await http.get(
-        uri,
-        headers: headers,
-      );
+      final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
-
         final List data = jsonDecode(response.body);
-
         return data.map((e) => Project.fromJson(e)).toList();
       }
 
@@ -245,21 +224,14 @@ class ProjectController {
 
   // Lista vagas associadas a um projeto
   static Future<List<Position>> buscarVagasPorProjeto(String projetoId) async {
-
     try {
-
       final headers = await _authHeaders();
       final uri = Uri.parse('${Config.baseUrl}/vagas/por-projeto/$projetoId/');
 
-      final response = await http.get(
-        uri,
-        headers: headers,
-      );
+      final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
-
         final List data = jsonDecode(response.body);
-
         return data.map((e) => Position.fromJson(e)).toList();
       }
 

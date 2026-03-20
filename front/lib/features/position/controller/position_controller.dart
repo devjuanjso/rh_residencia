@@ -19,6 +19,7 @@ class PositionController {
     required String projetoId,
     required String titulo,
     String? descricao,
+    String? senioridade,
     required List<String> habilidadesRequeridas,
     required List<String> certificacoesRequeridas,
     String? formacaoDesejada,
@@ -30,6 +31,7 @@ class PositionController {
         'projeto': projetoId,
         'titulo': titulo,
         'descricao': descricao,
+        'senioridade': senioridade,
         'habilidades_requeridas': habilidadesRequeridas,
         'certificacoes_requeridas': certificacoesRequeridas,
         'formacao_desejada': formacaoDesejada,
@@ -45,7 +47,8 @@ class PositionController {
 
   static Future<List<Position>> list({String? projetoId}) async {
     final uri = projetoId != null
-        ? Uri.parse('${Config.baseUrl}/vagas/').replace(queryParameters: {'projeto': projetoId})
+        ? Uri.parse('${Config.baseUrl}/vagas/')
+            .replace(queryParameters: {'projeto': projetoId})
         : Uri.parse('${Config.baseUrl}/vagas/');
 
     final response = await http.get(uri, headers: await _headers());
@@ -76,6 +79,7 @@ class PositionController {
     required String projetoId,
     required String titulo,
     String? descricao,
+    String? senioridade,
     required List<String> habilidadesRequeridas,
     required List<String> certificacoesRequeridas,
     String? formacaoDesejada,
@@ -87,6 +91,7 @@ class PositionController {
         'projeto': projetoId,
         'titulo': titulo,
         'descricao': descricao,
+        'senioridade': senioridade,
         'habilidades_requeridas': habilidadesRequeridas,
         'certificacoes_requeridas': certificacoesRequeridas,
         'formacao_desejada': formacaoDesejada,

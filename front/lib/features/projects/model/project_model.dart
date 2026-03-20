@@ -3,12 +3,18 @@ class Project {
   final String nome;
   final String descricao;
   final String? imagem;
+  final String? tipo;
+  final DateTime? dataInicio;
+  final String? criadoPorNome;
 
   Project({
     required this.id,
     required this.nome,
     required this.descricao,
     this.imagem,
+    this.tipo,
+    this.dataInicio,
+    this.criadoPorNome,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -17,6 +23,11 @@ class Project {
       nome: json['nome'],
       descricao: json['descricao'],
       imagem: json['imagem'],
+      tipo: json['tipo'],
+      dataInicio: json['data_inicio'] != null
+          ? DateTime.tryParse(json['data_inicio'])
+          : null,
+      criadoPorNome: json['criado_por_nome'],
     );
   }
 }

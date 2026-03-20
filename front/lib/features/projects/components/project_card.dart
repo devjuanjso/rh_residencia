@@ -36,22 +36,30 @@ class ProjectCard extends StatelessWidget {
     );
   }
 
-  // Imagem do projeto com fallback
   Widget _buildProjectImage() {
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(20),
-      ),
-      child: Image.network(
-        project.imagem ?? '',
-        height: 220,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildImageError(),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      child: project.imagem != null
+          ? Image.network(
+              project.imagem!,
+              height: 220,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
+            )
+          : _buildImagePlaceholder(),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      height: 220,
+      color: Colors.grey[200],
+      child: const Center(
+        child: Icon(Icons.image_outlined, size: 80, color: Colors.grey),
       ),
     );
   }
 
-  // Conteúdo textual do cartão
   Widget _buildProjectContent() {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -61,6 +69,8 @@ class ProjectCard extends StatelessWidget {
           _buildProjectTitle(),
           const SizedBox(height: 8),
           _buildProjectDescription(),
+          const SizedBox(height: 12),
+          _buildInfoRows(),
           if (showPositionsButton && onViewPositions != null) ...[
             const SizedBox(height: 16),
             _buildPositionsButton(),
@@ -70,28 +80,67 @@ class ProjectCard extends StatelessWidget {
     );
   }
 
-  // Título do projeto
   Widget _buildProjectTitle() {
     return Text(
       project.nome,
-      style: const TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-      ),
+      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
     );
   }
 
-  // Descrição do projeto
   Widget _buildProjectDescription() {
     return Text(
       project.descricao,
-      style: const TextStyle(fontSize: 16),
+      style: const TextStyle(fontSize: 14, color: Colors.black54),
       maxLines: 3,
       overflow: TextOverflow.ellipsis,
     );
   }
 
-  // Botão para ver vagas do projeto
+  Widget _buildInfoRows() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (project.tipo != null) ...[
+          _buildInfoRow(
+            Icons.info_outline,
+            _formatarTipo(project.tipo!),
+            bold: true,
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (project.dataInicio != null) ...[
+          _buildInfoRow(
+            Icons.calendar_today_outlined,
+            'Inicio: ${_formatarData(project.dataInicio!)}',
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (project.criadoPorNome != null)
+          _buildInfoRow(
+            Icons.people_outline,
+            'Criado por ${project.criadoPorNome}',
+          ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text, {bool bold = false}) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Colors.deepPurple),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.black87,
+            fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPositionsButton() {
     return SizedBox(
       width: double.infinity,
@@ -102,14 +151,17 @@ class ProjectCard extends StatelessWidget {
     );
   }
 
-  // Fallback para imagem indisponível
-  Widget _buildImageError() {
-    return Container(
-      height: 220,
-      color: Colors.grey[200],
-      child: const Center(
-        child: Icon(Icons.broken_image, size: 80, color: Colors.grey),
-      ),
-    );
+  String _formatarData(DateTime data) {
+    return '${data.day.toString().padLeft(2, '0')}/'
+        '${data.month.toString().padLeft(2, '0')}/'
+        '${data.year}';
+  }
+
+  String _formatarTipo(String tipo) {
+    return tipo
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
   }
 }

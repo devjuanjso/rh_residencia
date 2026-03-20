@@ -34,9 +34,7 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     return Scaffold(
       appBar: AppBar(
         title: Consumer<ProjectFormViewModel>(
-          builder: (context, vm, child) {
-            return Text(vm.screenTitle);
-          },
+          builder: (context, vm, child) => Text(vm.screenTitle),
         ),
       ),
       body: Consumer<ProjectFormViewModel>(
@@ -51,16 +49,13 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  // Constrói conteúdo principal da página
   Widget _buildContent(BuildContext context, ProjectFormViewModel vm) {
     if (widget.projetoId != null && !vm.loading && vm.projetoId == null) {
       return _buildNotFoundError();
     }
-
     return _buildFormContent(context, vm);
   }
 
-  // Tela de erro quando projeto não existe
   Widget _buildNotFoundError() {
     return Center(
       child: Column(
@@ -68,10 +63,7 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
         children: [
           const Icon(Icons.error, size: 64, color: Colors.red),
           const SizedBox(height: 16),
-          const Text(
-            'Projeto não encontrado',
-            style: TextStyle(fontSize: 18),
-          ),
+          const Text('Projeto não encontrado', style: TextStyle(fontSize: 18)),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
@@ -82,7 +74,6 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  // Formulário de criação/edição de projeto
   Widget _buildFormContent(BuildContext context, ProjectFormViewModel vm) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -93,6 +84,10 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
           const SizedBox(height: 16),
           _buildDescricaoField(vm),
           const SizedBox(height: 16),
+          _buildTipoField(vm),
+          const SizedBox(height: 16),
+          _buildDataInicioField(context, vm),
+          const SizedBox(height: 16),
           _buildImagePicker(vm),
           const SizedBox(height: 24),
           _buildActionButton(vm),
@@ -101,15 +96,14 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  // Campo para nome do projeto
+  // ── Campos ────────────────────────────────────────────────────────────────────
+
   Widget _buildNomeField(ProjectFormViewModel vm) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Nome do Projeto',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
+        const Text('Nome do Projeto',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextField(
           controller: vm.nomeController,
@@ -122,15 +116,12 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  // Campo para descrição do projeto
   Widget _buildDescricaoField(ProjectFormViewModel vm) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Descrição do projeto',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
+        const Text('Descrição do projeto',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextField(
           controller: vm.descricaoController,
@@ -144,10 +135,75 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  // Seletor de imagem do projeto
+  Widget _buildTipoField(ProjectFormViewModel vm) {
+    const opcoes = [
+      DropdownMenuItem(value: 'produto_digital', child: Text('Produto digital')),
+      DropdownMenuItem(value: 'servico',          child: Text('Serviço')),
+      DropdownMenuItem(value: 'pesquisa',         child: Text('Pesquisa')),
+      DropdownMenuItem(value: 'outro',            child: Text('Outro')),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Tipo do projeto',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: vm.tipo,
+          hint: const Text('Selecione o tipo'),
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+          items: opcoes,
+          onChanged: vm.setTipo,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDataInicioField(BuildContext context, ProjectFormViewModel vm) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Data de início',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => _selecionarData(context, vm),
+          child: AbsorbPointer(
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: vm.dataInicio != null
+                    ? '${vm.dataInicio!.day.toString().padLeft(2, '0')}/'
+                        '${vm.dataInicio!.month.toString().padLeft(2, '0')}/'
+                        '${vm.dataInicio!.year}'
+                    : 'Selecione a data (opcional)',
+                border: const OutlineInputBorder(),
+                suffixIcon: const Icon(Icons.calendar_today_outlined),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _selecionarData(
+      BuildContext context, ProjectFormViewModel vm) async {
+    final hoje = DateTime.now();
+    final selecionada = await showDatePicker(
+      context: context,
+      initialDate: vm.dataInicio ?? hoje,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (selecionada != null) {
+      vm.setDataInicio(selecionada);
+    }
+  }
+
   Widget _buildImagePicker(ProjectFormViewModel vm) {
     return ImagePickerField(
-      label: 'Imagem do projeto',
+      label: 'Imagem do projeto (opcional)',
       initialImage: vm.imagem,
       imageUrl: vm.imagemUrlAtual,
       showKeepCurrentOption: widget.projetoId != null,
@@ -157,7 +213,8 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  // Botão principal de salvar/criar
+  // ── Botão salvar ──────────────────────────────────────────────────────────────
+
   Widget _buildActionButton(ProjectFormViewModel vm) {
     return SizedBox(
       width: double.infinity,
@@ -174,27 +231,25 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
                 width: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Text(
-                vm.actionButtonText,
-                style: const TextStyle(fontSize: 16),
-              ),
+            : Text(vm.actionButtonText,
+                style: const TextStyle(fontSize: 16)),
       ),
     );
   }
 
-  // Processa ação de salvar projeto
   Future<void> _handleSaveAction(
     ProjectFormViewModel vm,
     BuildContext context,
   ) async {
     final projetoIdCriado = await vm.salvarProjeto(context);
-    
+
     if (projetoIdCriado != null && context.mounted) {
       if (vm.projetoId != null) {
         Navigator.pop(context, true);
       } else {
-        final projetoCriado = await ProjectController.buscarProjetoPorId(projetoIdCriado);
-        
+        final projetoCriado =
+            await ProjectController.buscarProjetoPorId(projetoIdCriado);
+
         if (projetoCriado != null && context.mounted) {
           Navigator.pushReplacement(
             context,

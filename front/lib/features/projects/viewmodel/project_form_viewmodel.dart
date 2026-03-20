@@ -5,7 +5,7 @@ import '../controller/project_controller.dart';
 class ProjectFormViewModel extends ChangeNotifier {
   final nomeController = TextEditingController();
   final descricaoController = TextEditingController();
-  
+
   File? imagem;
   bool loading = false;
   String? projetoId;
@@ -13,12 +13,18 @@ class ProjectFormViewModel extends ChangeNotifier {
   String? imagemUrlAtual;
   bool dadosCarregados = false;
 
+  // Novos campos
+  String? tipo;
+  DateTime? dataInicio;
+
   // Carrega dados de um projeto para edição
   void carregarProjetoParaEdicao({
     required String id,
     required String nome,
     required String descricao,
     String? imagemUrl,
+    String? tipo,
+    DateTime? dataInicio,
   }) {
     projetoId = id;
     nomeController.text = nome;
@@ -26,6 +32,8 @@ class ProjectFormViewModel extends ChangeNotifier {
     imagemUrlAtual = imagemUrl;
     manterImagemAtual = true;
     dadosCarregados = true;
+    this.tipo = tipo;
+    this.dataInicio = dataInicio;
     _safeNotifyListeners();
   }
 
@@ -38,22 +46,30 @@ class ProjectFormViewModel extends ChangeNotifier {
     manterImagemAtual = false;
     imagemUrlAtual = null;
     dadosCarregados = false;
+    tipo = null;
+    dataInicio = null;
     _safeNotifyListeners();
   }
 
-  // Define imagem selecionada pelo usuário
   void setImagem(File? file) {
     imagem = file;
     manterImagemAtual = false;
     _safeNotifyListeners();
   }
 
-  // Define se mantém imagem atual na edição
   void setManterImagemAtual(bool value) {
     manterImagemAtual = value;
-    if (value) {
-      imagem = null;
-    }
+    if (value) imagem = null;
+    _safeNotifyListeners();
+  }
+
+  void setTipo(String? value) {
+    tipo = value;
+    _safeNotifyListeners();
+  }
+
+  void setDataInicio(DateTime? value) {
+    dataInicio = value;
     _safeNotifyListeners();
   }
 
@@ -72,16 +88,18 @@ class ProjectFormViewModel extends ChangeNotifier {
           descricao: descricaoController.text.trim(),
           imagem: imagem,
           manterImagemAtual: manterImagemAtual,
+          tipo: tipo,
+          dataInicio: dataInicio,
         );
-        
-        if (sucesso) {
-          projetoIdCriado = projetoId;
-        }
+
+        if (sucesso) projetoIdCriado = projetoId;
       } else {
         projetoIdCriado = await ProjectController.criarProjeto(
           nome: nomeController.text.trim(),
           descricao: descricaoController.text.trim(),
           imagem: imagem,
+          tipo: tipo,
+          dataInicio: dataInicio,
         );
       }
 
@@ -91,9 +109,13 @@ class ProjectFormViewModel extends ChangeNotifier {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            projetoIdCriado != null 
-                ? (projetoId != null ? 'Projeto atualizado com sucesso' : 'Projeto criado com sucesso')
-                : (projetoId != null ? 'Erro ao atualizar projeto' : 'Erro ao criar projeto'),
+            projetoIdCriado != null
+                ? (projetoId != null
+                    ? 'Projeto atualizado com sucesso'
+                    : 'Projeto criado com sucesso')
+                : (projetoId != null
+                    ? 'Erro ao atualizar projeto'
+                    : 'Erro ao criar projeto'),
           ),
           backgroundColor: projetoIdCriado != null ? Colors.green : Colors.red,
         ),
@@ -103,14 +125,14 @@ class ProjectFormViewModel extends ChangeNotifier {
     } catch (e) {
       loading = false;
       _safeNotifyListeners();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erro: $e'),
           backgroundColor: Colors.red,
         ),
       );
-      
+
       return null;
     }
   }
@@ -128,6 +150,8 @@ class ProjectFormViewModel extends ChangeNotifier {
         nome: nomeController.text.trim(),
         descricao: descricaoController.text.trim(),
         imagem: imagem,
+        tipo: tipo,
+        dataInicio: dataInicio,
       );
 
       loading = false;
@@ -147,13 +171,15 @@ class ProjectFormViewModel extends ChangeNotifier {
 
     try {
       final projeto = await ProjectController.buscarProjetoPorId(id);
-      
+
       if (projeto != null) {
         carregarProjetoParaEdicao(
           id: projeto.id,
           nome: projeto.nome,
           descricao: projeto.descricao,
           imagemUrl: projeto.imagem,
+          tipo: projeto.tipo,
+          dataInicio: projeto.dataInicio,
         );
       } else {
         limparDados();
@@ -166,40 +192,28 @@ class ProjectFormViewModel extends ChangeNotifier {
     }
   }
 
-  // Verifica se há alterações não salvas
   bool get hasChanges {
-    return nomeController.text.isNotEmpty || 
-           descricaoController.text.isNotEmpty ||
-           imagem != null ||
-           manterImagemAtual != true;
+    return nomeController.text.isNotEmpty ||
+        descricaoController.text.isNotEmpty ||
+        imagem != null ||
+        manterImagemAtual != true;
   }
 
-  // Valida se campos obrigatórios estão preenchidos
   bool get isValid {
     return nomeController.text.trim().isNotEmpty &&
-           descricaoController.text.trim().isNotEmpty;
+        descricaoController.text.trim().isNotEmpty;
   }
 
-  // Retorna título da tela baseado no contexto
-  String get screenTitle {
-    return projetoId != null ? 'Editar Projeto' : 'Novo Projeto';
-  }
+  String get screenTitle => projetoId != null ? 'Editar Projeto' : 'Novo Projeto';
 
-  // Retorna texto do botão principal
-  String get actionButtonText {
-    return projetoId != null ? 'Atualizar' : 'Criar';
-  }
+  String get actionButtonText => projetoId != null ? 'Atualizar' : 'Criar';
 
-  // Libera recursos dos controllers
   void disposeControllers() {
     nomeController.dispose();
     descricaoController.dispose();
   }
 
-  // Método seguro para notificar listeners
   void _safeNotifyListeners() {
-    if (hasListeners) {
-      notifyListeners();
-    }
+    if (hasListeners) notifyListeners();
   }
 }

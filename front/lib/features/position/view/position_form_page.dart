@@ -56,14 +56,9 @@ class _PositionFormPageState extends State<PositionFormPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Campo de projeto (travado/display only)
-          _buildRequiredField(
-            'Projeto',
-            _buildProjetoField(vm),
-          ),
+          _buildRequiredField('Projeto', _buildProjetoField(vm)),
           const SizedBox(height: 16),
 
-          // Campo de título
           _buildRequiredField(
             'Título',
             TextField(
@@ -76,7 +71,6 @@ class _PositionFormPageState extends State<PositionFormPage> {
           ),
           const SizedBox(height: 16),
 
-          // Campo de descrição
           _buildRequiredField(
             'Descrição',
             TextField(
@@ -88,9 +82,20 @@ class _PositionFormPageState extends State<PositionFormPage> {
               ),
             ),
           ),
+          const SizedBox(height: 16),
+
+          _buildOptionalField(
+            'Senioridade (Opcional)',
+            DropdownButtonFormField<String>(
+              value: vm.senioridade,
+              hint: const Text('Selecione a senioridade'),
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              items: PositionFormViewModel.senioridadeOpcoes,
+              onChanged: vm.setSenioridade,
+            ),
+          ),
           const SizedBox(height: 24),
 
-          // Habilidades
           SkillInputSection(
             title: 'Habilidades Requeridas',
             controller: vm.habilidadeController,
@@ -101,7 +106,6 @@ class _PositionFormPageState extends State<PositionFormPage> {
           ),
           const SizedBox(height: 24),
 
-          // Certificações
           SkillInputSection(
             title: 'Certificações Requeridas',
             controller: vm.certificacoesController,
@@ -112,7 +116,6 @@ class _PositionFormPageState extends State<PositionFormPage> {
           ),
           const SizedBox(height: 24),
 
-          // Formação desejada
           _buildOptionalField(
             'Formação Desejada (Opcional)',
             TextField(
@@ -125,7 +128,6 @@ class _PositionFormPageState extends State<PositionFormPage> {
           ),
           const SizedBox(height: 32),
 
-          // Botão de salvar
           SizedBox(
             width: double.infinity,
             height: 50,
@@ -161,9 +163,7 @@ class _PositionFormPageState extends State<PositionFormPage> {
           Expanded(
             child: Text(
               vm.projetoNome ?? 'Carregando...',
-              style: const TextStyle(
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontSize: 16),
             ),
           ),
           const SizedBox(width: 12),
@@ -181,18 +181,12 @@ class _PositionFormPageState extends State<PositionFormPage> {
           children: [
             Text(
               label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             const SizedBox(width: 4),
             const Text(
               '*',
-              style: TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -208,10 +202,7 @@ class _PositionFormPageState extends State<PositionFormPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
         ),
         const SizedBox(height: 8),
         field,

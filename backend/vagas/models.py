@@ -3,13 +3,30 @@ from django.conf import settings
 from django.db import models
 from projetos.models import Projeto
 
+
 class Vaga(models.Model):
+
+    class Senioridade(models.TextChoices):
+        ESTAGIO    = "estagio",    "Estágio"
+        JUNIOR     = "junior",     "Júnior"
+        PLENO      = "pleno",      "Pleno"
+        SENIOR     = "senior",     "Sênior"
+        ESPECIALISTA = "especialista", "Especialista"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    projeto = models.ForeignKey(Projeto, on_delete=models.CASCADE, related_name="vagas")
+    projeto = models.ForeignKey(
+        Projeto, on_delete=models.CASCADE, related_name="vagas"
+    )
 
     titulo = models.CharField(max_length=120)
     descricao = models.TextField()
+
+    senioridade = models.CharField(
+        max_length=20,
+        choices=Senioridade.choices,
+        default=Senioridade.PLENO,
+    )
 
     habilidades_requeridas = models.JSONField(default=list)
     certificacoes_requeridas = models.JSONField(default=list)
@@ -18,7 +35,7 @@ class Vaga(models.Model):
     criado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="vagas_criadas"
+        related_name="vagas_criadas",
     )
 
     criado_em = models.DateTimeField(auto_now_add=True)

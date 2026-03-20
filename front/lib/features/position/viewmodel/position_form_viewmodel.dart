@@ -10,7 +10,7 @@ class PositionFormViewModel extends ChangeNotifier {
   String? _projetoId;
   String? _projetoNome;
   bool _projetoFixo = false;
-  
+
   final _tituloController = TextEditingController();
   final _descricaoController = TextEditingController();
   final _habilidadeController = TextEditingController();
@@ -20,12 +20,14 @@ class PositionFormViewModel extends ChangeNotifier {
   final List<String> _habilidadesRequeridas = [];
   final List<String> _certificacoesRequeridas = [];
 
+  String? _senioridade;
   bool _loading = false;
 
   String? get projetoId => _projetoId;
   String? get projetoNome => _projetoNome;
   bool get loading => _loading;
   bool get projetoFixo => _projetoFixo;
+  String? get senioridade => _senioridade;
 
   TextEditingController get tituloController => _tituloController;
   TextEditingController get descricaoController => _descricaoController;
@@ -36,21 +38,34 @@ class PositionFormViewModel extends ChangeNotifier {
   List<String> get habilidadesRequeridas => _habilidadesRequeridas;
   List<String> get certificacoesRequeridas => _certificacoesRequeridas;
 
-  // Define um projeto fixo (não pode ser alterado)
+  // Opções de senioridade espelhando o Django
+  static const senioridadeOpcoes = [
+    DropdownMenuItem(value: 'estagio',      child: Text('Estágio')),
+    DropdownMenuItem(value: 'junior',       child: Text('Júnior')),
+    DropdownMenuItem(value: 'pleno',        child: Text('Pleno')),
+    DropdownMenuItem(value: 'senior',       child: Text('Sênior')),
+    DropdownMenuItem(value: 'especialista', child: Text('Especialista')),
+  ];
+
+  void setSenioridade(String? value) {
+    _senioridade = value;
+    notifyListeners();
+  }
+
   void setProjetoFixo(String projetoId) {
     _projetoId = projetoId;
     _projetoFixo = true;
     notifyListeners();
   }
 
-  // Carrega o nome do projeto para display
-  Future<void> carregarProjetoParaDisplay(String projetoId, String? projetoNome) async {
+  Future<void> carregarProjetoParaDisplay(
+      String projetoId, String? projetoNome) async {
     if (projetoNome != null) {
       _projetoNome = projetoNome;
       notifyListeners();
       return;
     }
-    
+
     try {
       final projeto = await ProjectController.buscarProjetoPorId(projetoId);
       _projetoNome = projeto?.nome ?? 'Projeto não encontrado';
@@ -60,39 +75,32 @@ class PositionFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Adiciona uma nova habilidade à lista de habilidades requeridas
   void adicionarHabilidade() {
     final value = _habilidadeController.text.trim();
     if (value.isEmpty || _habilidadesRequeridas.contains(value)) return;
-
     _habilidadesRequeridas.add(value);
     _habilidadeController.clear();
     notifyListeners();
   }
 
-  // Remove uma habilidade específica da lista de habilidades requeridas
   void removerHabilidade(String value) {
     _habilidadesRequeridas.remove(value);
     notifyListeners();
   }
 
-  // Adiciona uma nova certificação à lista de certificações requeridas
   void adicionarCertificacao() {
     final value = _certificacoesController.text.trim();
     if (value.isEmpty || _certificacoesRequeridas.contains(value)) return;
-
     _certificacoesRequeridas.add(value);
     _certificacoesController.clear();
     notifyListeners();
   }
 
-  // Remove uma certificação específica da lista de certificações requeridas
   void removerCertificacao(String value) {
     _certificacoesRequeridas.remove(value);
     notifyListeners();
   }
 
-  // Preenche o formulário com os dados de uma vaga existente para edição
   void preencherFormulario({
     required String id,
     required String titulo,
@@ -101,10 +109,10 @@ class PositionFormViewModel extends ChangeNotifier {
     required List<String> habilidades,
     required List<String> certificacoes,
     String? formacao,
+    String? senioridade,
   }) {
     _positionId = id;
-    
-    // Só define o projeto se não estiver fixo (para edição)
+
     if (!_projetoFixo) {
       _projetoId = projectId;
     }
@@ -112,6 +120,7 @@ class PositionFormViewModel extends ChangeNotifier {
     _tituloController.text = titulo;
     _descricaoController.text = descricao;
     _formacaoController.text = formacao ?? '';
+    _senioridade = senioridade;
 
     _habilidadesRequeridas
       ..clear()
@@ -124,7 +133,6 @@ class PositionFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Carrega os dados de uma vaga existente para modo de edição
   void carregarParaEdicao(Position? vaga) {
     if (vaga != null) {
       preencherFormulario(
@@ -135,11 +143,11 @@ class PositionFormViewModel extends ChangeNotifier {
         habilidades: vaga.habilidadesRequeridas,
         certificacoes: vaga.certificacoesRequeridas,
         formacao: vaga.formacaoDesejada,
+        senioridade: vaga.senioridade,
       );
     }
   }
 
-  // Salva uma nova vaga ou atualiza uma existente
   Future<void> salvarVaga(BuildContext context) async {
     if (_projetoId == null ||
         _tituloController.text.isEmpty ||
@@ -158,6 +166,7 @@ class PositionFormViewModel extends ChangeNotifier {
           projetoId: _projetoId!,
           titulo: _tituloController.text,
           descricao: _descricaoController.text,
+          senioridade: _senioridade,
           habilidadesRequeridas: _habilidadesRequeridas,
           certificacoesRequeridas: _certificacoesRequeridas,
           formacaoDesejada: _formacaoController.text.isEmpty
@@ -169,6 +178,7 @@ class PositionFormViewModel extends ChangeNotifier {
           projetoId: _projetoId!,
           titulo: _tituloController.text,
           descricao: _descricaoController.text,
+          senioridade: _senioridade,
           habilidadesRequeridas: _habilidadesRequeridas,
           certificacoesRequeridas: _certificacoesRequeridas,
           formacaoDesejada: _formacaoController.text.isEmpty
@@ -188,18 +198,14 @@ class PositionFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Exibe uma mensagem de snackbar na tela
   void _snack(BuildContext context, String msg) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  // Limpa todos os campos do formulário
   void _limparFormulario() {
     _positionId = null;
-    if (!_projetoFixo) {
-      _projetoId = null;
-    }
+    if (!_projetoFixo) _projetoId = null;
 
     _tituloController.clear();
     _descricaoController.clear();
@@ -209,6 +215,7 @@ class PositionFormViewModel extends ChangeNotifier {
 
     _habilidadesRequeridas.clear();
     _certificacoesRequeridas.clear();
+    _senioridade = null;
   }
 
   @override

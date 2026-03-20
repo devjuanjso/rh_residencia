@@ -15,7 +15,6 @@ class ProjectListViewModel extends ChangeNotifier {
 
   final CandidaturaController _candidaturaController = CandidaturaController();
 
-  // Carrega projetos publicados
   Future<void> carregarProjetosPublicados() async {
     loading = true;
     notifyListeners();
@@ -33,7 +32,6 @@ class ProjectListViewModel extends ChangeNotifier {
     }
   }
 
-  // Carrega projetos criados pelo usuário
   Future<void> carregarMeusProjetos() async {
     loading = true;
     notifyListeners();
@@ -51,7 +49,6 @@ class ProjectListViewModel extends ChangeNotifier {
     }
   }
 
-  // Carrega vagas do projeto atual
   Future<void> carregarVagasDoProjetoAtual() async {
     if (projetos.isEmpty) return;
 
@@ -72,7 +69,6 @@ class ProjectListViewModel extends ChangeNotifier {
     }
   }
 
-  // Define qual projeto está selecionado
   Future<void> setProjetoAtual(int index) async {
     if (index < 0 || index >= projetos.length) return;
     if (index == projetoAtual) return;
@@ -84,7 +80,18 @@ class ProjectListViewModel extends ChangeNotifier {
     await carregarVagasDoProjetoAtual();
   }
 
-  // Avança para o próximo projeto
+  // Navega diretamente para um projeto pelo índice (usado pelo PageView)
+  Future<void> irParaProjeto(int index) async {
+    if (index < 0 || index >= projetos.length) return;
+    if (index == projetoAtual) return;
+
+    projetoAtual = index;
+    vagasDoProjeto = [];
+    notifyListeners();
+
+    await carregarVagasDoProjetoAtual();
+  }
+
   Future<void> irParaProximoProjeto() async {
     if (projetos.isEmpty) return;
     if (projetoAtual >= projetos.length - 1) return;
@@ -96,16 +103,11 @@ class ProjectListViewModel extends ChangeNotifier {
     await carregarVagasDoProjetoAtual();
   }
 
-  // Realiza candidatura em uma vaga
   Future<bool> candidatarSe(String vagaId) async {
     try {
-      if (vagasCandidatadas.contains(vagaId)) {
-        return false;
-      }
+      if (vagasCandidatadas.contains(vagaId)) return false;
 
-      final sucesso = await _candidaturaController.candidatarSe(
-        vagaId: vagaId,
-      );
+      final sucesso = await _candidaturaController.candidatarSe(vagaId: vagaId);
 
       if (sucesso) {
         vagasCandidatadas.add(vagaId);
@@ -119,7 +121,6 @@ class ProjectListViewModel extends ChangeNotifier {
     }
   }
 
-  // Carrega vagas que o usuário já se candidatou
   Future<void> carregarMinhasCandidaturas() async {
     try {
       final vagas = await _candidaturaController.minhasCandidaturas();

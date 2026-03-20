@@ -1,203 +1,425 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/components/loading_overlay.dart';
 import '../../../core/layout/empty_state.dart';
-import '../components/project_card.dart';
 import '../components/position_list_item.dart';
+import '../model/project_model.dart';
 import '../viewmodel/project_list_viewmodel.dart';
+import '../../position/model/position_model.dart';
 
-class ProjectListPage extends StatelessWidget {
+class ProjectListPage extends StatefulWidget {
   const ProjectListPage({super.key});
+
+  @override
+  State<ProjectListPage> createState() => _ProjectListPageState();
+}
+
+class _ProjectListPageState extends State<ProjectListPage> {
+  bool _vagasVisiveis = true;
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => ProjectListViewModel()..carregarProjetosPublicados(),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Projetos'),
-          centerTitle: true,
-        ),
-        body: Consumer<ProjectListViewModel>(
-          builder: (context, vm, _) {
-            return _buildBodyContent(vm);
-          },
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Consumer<ProjectListViewModel>(
+            builder: (context, vm, _) {
+              return _buildBody(context, vm);
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildBodyContent(ProjectListViewModel vm) {
+  Widget _buildBody(BuildContext context, ProjectListViewModel vm) {
     if (vm.loading && vm.projetos.isEmpty) {
-      return _buildLoadingState();
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (vm.projetos.isEmpty) {
-      return _buildEmptyProjectsState();
+      return const EmptyState(
+        icon: Icons.work_outline,
+        title: 'Nenhum projeto encontrado',
+        description: 'Crie seu primeiro projeto para começar',
+      );
     }
 
-    return _buildProjectPager(vm);
-  }
-
-  Widget _buildLoadingState() {
-    return const Center(child: CircularProgressIndicator());
-  }
-
-  Widget _buildEmptyProjectsState() {
-    return const EmptyState(
-      icon: Icons.work_outline,
-      title: 'Nenhum projeto encontrado',
-      description: 'Crie seu primeiro projeto para começar',
-    );
-  }
-
-  Widget _buildProjectPager(ProjectListViewModel vm) {
-    final projeto = vm.projetos[vm.projetoAtual];
-
-    return PageView(
-      scrollDirection: Axis.vertical,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildProjectDetailsPage(vm, projeto),
-        _buildProjectPositionsPage(vm, projeto),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          child: _buildHeader(vm),
+        ),
+        const SizedBox(height: 20),
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: vm.projetos.length,
+            onPageChanged: (index) {
+              vm.irParaProjeto(index);
+              setState(() => _vagasVisiveis = true);
+            },
+            itemBuilder: (context, index) {
+              final projeto = vm.projetos[index];
+              return SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                child: _buildProjectCard(context, vm, projeto),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildProjectDetailsPage(ProjectListViewModel vm, projeto) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+  // ── Header ───────────────────────────────────────────────────────────────────
+
+  Widget _buildHeader(ProjectListViewModel vm) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Vagas para você',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${vm.projetos.length.toString().padLeft(2, '0')} projetos disponíveis',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ),
+            _buildIconButton(Icons.tune, () {}),
+            const SizedBox(width: 8),
+            _buildIconButton(Icons.refresh, () {
+              vm.carregarProjetosPublicados();
+            }),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIconButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey.shade300),
+          color: Colors.white,
+        ),
+        child: Icon(icon, size: 18, color: Colors.black87),
+      ),
+    );
+  }
+
+  // ── Project Card ──────────────────────────────────────────────────────────────
+
+  Widget _buildProjectCard(
+      BuildContext context, ProjectListViewModel vm, Project projeto) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: ProjectCard(
-              project: projeto,
-              showPositionsButton: false,
+          _buildProjectImage(projeto),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProjectInfo(projeto),
+                const SizedBox(height: 16),
+                _buildToggleVagasButton(),
+                if (_vagasVisiveis) ...[
+                  const SizedBox(height: 12),
+                  _buildVagasList(context, vm),
+                ],
+              ],
             ),
           ),
-          const SizedBox(height: 12),
-          _buildSwipeHint(),
         ],
       ),
     );
   }
 
-  Widget _buildProjectPositionsPage(ProjectListViewModel vm, projeto) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          _buildPositionsTitle(projeto.nome),
-          const SizedBox(height: 12),
-          Expanded(child: _buildPositionsList(vm)),
-          const SizedBox(height: 12),
-          _buildNextProjectButton(vm),
-        ],
-      ),
+  Widget _buildProjectImage(Project projeto) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      child: projeto.imagem != null
+          ? Image.network(
+              projeto.imagem!,
+              height: 160,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
+            )
+          : _buildImagePlaceholder(),
     );
   }
 
-  Widget _buildPositionsTitle(String nomeProjeto) {
-    return Text(
-      'Vagas de $nomeProjeto',
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
-  Widget _buildPositionsList(ProjectListViewModel vm) {
-    return LoadingOverlay(
-      isLoading: vm.loadingVagas,
-      message: 'Carregando vagas...',
-      child: vm.vagasDoProjeto.isEmpty
-          ? _buildEmptyPositionsState()
-          : _buildPositionsListView(vm),
-    );
-  }
-
-  Widget _buildEmptyPositionsState() {
-    return const EmptyState(
-      icon: Icons.work_outline,
-      title: 'Nenhuma vaga disponível',
-      description: 'Este projeto ainda não possui vagas',
-    );
-  }
-
-  Widget _buildPositionsListView(ProjectListViewModel vm) {
-    return ListView.builder(
-      itemCount: vm.vagasDoProjeto.length,
-      itemBuilder: (context, index) {
-        final vaga = vm.vagasDoProjeto[index];
-        return _buildPositionListItem(context, vaga);
-      },
-    );
-  }
-
-  Widget _buildPositionListItem(BuildContext context, vaga) {
-    final vm = context.watch<ProjectListViewModel>();
-    final jaCandidatado = vm.jaSeCandidatou(vaga.id);
-
-    return PositionListItem(
-      position: vaga,
-      applied: jaCandidatado,
-      onApply: jaCandidatado
-          ? null
-          : () async {
-              try {
-                final sucesso = await vm.candidatarSe(vaga.id);
-
-                if (sucesso) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Candidatura enviada com sucesso!"),
-                    ),
-                  );
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Erro: $e"),
-                  ),
-                );
-              }
-            },
-      showActions: true,
-      showEducation: false,
-      showCertifications: false,
-    );
-  }
-
-  Widget _buildNextProjectButton(ProjectListViewModel vm) {
-    return SizedBox(
+  Widget _buildImagePlaceholder() {
+    return Container(
+      height: 160,
       width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: vm.projetoAtual < vm.projetos.length - 1
-            ? () => vm.irParaProximoProjeto()
-            : null,
-        icon: const Icon(Icons.arrow_forward),
-        label: Text(
-          vm.projetoAtual < vm.projetos.length - 1
-              ? 'Próximo projeto'
-              : 'Último projeto',
-          style: const TextStyle(fontSize: 16),
-        ),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      color: Colors.black87,
+      child: const Center(
+        child: Icon(Icons.image, size: 60, color: Colors.white54),
+      ),
+    );
+  }
+
+  Widget _buildProjectInfo(Project projeto) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          projeto.nome,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
+        const SizedBox(height: 4),
+        Text(
+          projeto.descricao,
+          style: const TextStyle(fontSize: 13, color: Colors.black54),
+        ),
+        const SizedBox(height: 12),
+        if (projeto.tipo != null) ...[
+          _buildInfoRow(
+            Icons.info_outline,
+            _formatarTipo(projeto.tipo!),
+            color: Colors.deepPurple,
+            bold: true,
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (projeto.dataInicio != null) ...[
+          _buildInfoRow(
+            Icons.calendar_today_outlined,
+            'Inicio: ${_formatarData(projeto.dataInicio!)}',
+            color: Colors.deepPurple,
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (projeto.criadoPorNome != null)
+          _buildInfoRow(
+            Icons.people_outline,
+            'Criado por ${projeto.criadoPorNome}',
+            color: Colors.deepPurple,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text,
+      {Color? color, bool bold = false}) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: color ?? Colors.grey),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.black87,
+            fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggleVagasButton() {
+    return GestureDetector(
+      onTap: () => setState(() => _vagasVisiveis = !_vagasVisiveis),
+      child: Text(
+        _vagasVisiveis ? 'Ocultar todas as vagas' : 'Mostrar todas as vagas',
+        style: const TextStyle(
+          fontSize: 14,
+          color: Colors.deepPurple,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
 
-  Widget _buildSwipeHint() {
-    return const Text(
-      'Arraste para baixo para ver as vagas',
-      style: TextStyle(
-        fontSize: 14,
-        color: Colors.grey,
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+
+  String _formatarData(DateTime data) {
+    return '${data.day.toString().padLeft(2, '0')}/'
+        '${data.month.toString().padLeft(2, '0')}/'
+        '${data.year}';
+  }
+
+  String _formatarTipo(String tipo) {
+    return tipo
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
+  }
+
+  String _formatarSenioridade(String value) {
+    const map = {
+      'estagio':      'Estágio',
+      'junior':       'Júnior',
+      'pleno':        'Pleno',
+      'senior':       'Sênior',
+      'especialista': 'Especialista',
+    };
+    return map[value] ?? value;
+  }
+
+  // ── Vagas List ────────────────────────────────────────────────────────────────
+
+  Widget _buildVagasList(BuildContext context, ProjectListViewModel vm) {
+    if (vm.loadingVagas) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (vm.vagasDoProjeto.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'Nenhuma vaga disponível',
+          style: TextStyle(color: Colors.grey, fontSize: 13),
+        ),
+      );
+    }
+
+    return Column(
+      children: vm.vagasDoProjeto.map((vaga) {
+        final jaCandidatado = vm.jaSeCandidatou(vaga.id);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: _buildVagaCollapsibleItem(context, vm, vaga, jaCandidatado),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildVagaCollapsibleItem(
+    BuildContext context,
+    ProjectListViewModel vm,
+    Position vaga,
+    bool jaCandidatado,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  vaga.titulo,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              if (vaga.senioridade != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade800,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _formatarSenioridade(vaga.senioridade!),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: PositionListItem(
+                position: vaga,
+                applied: jaCandidatado,
+                onApply: jaCandidatado
+                    ? null
+                    : () async {
+                        try {
+                          final sucesso = await vm.candidatarSe(vaga.id);
+                          if (sucesso) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Candidatura enviada com sucesso!"),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Erro: $e")),
+                          );
+                        }
+                      },
+                showActions: true,
+                showEducation: false,
+                showCertifications: false,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
