@@ -13,11 +13,19 @@ class ProjectFormViewModel extends ChangeNotifier {
   String? imagemUrlAtual;
   bool dadosCarregados = false;
 
-  // Novos campos
   String? tipo;
   DateTime? dataInicio;
 
-  // Carrega dados de um projeto para edição
+  List<Map<String, String>> tiposDisponiveis = [];
+
+  // Busca tipos de projeto da API
+  Future<void> carregarChoices() async {
+    final choices = await ProjectController.buscarChoices();
+    tiposDisponiveis = choices["tipos"] ?? [];
+    _safeNotifyListeners();
+  }
+
+  // Preenche o formulário com dados de um projeto existente
   void carregarProjetoParaEdicao({
     required String id,
     required String nome,
@@ -37,7 +45,7 @@ class ProjectFormViewModel extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  // Limpa todos os dados do formulário
+  // Reseta todos os campos para estado inicial
   void limparDados() {
     nomeController.clear();
     descricaoController.clear();
@@ -51,29 +59,33 @@ class ProjectFormViewModel extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
+  // Atualiza imagem selecionada e descarta manter atual
   void setImagem(File? file) {
     imagem = file;
     manterImagemAtual = false;
     _safeNotifyListeners();
   }
 
+  // Alterna entre manter imagem atual ou remover
   void setManterImagemAtual(bool value) {
     manterImagemAtual = value;
     if (value) imagem = null;
     _safeNotifyListeners();
   }
 
+  // Atualiza tipo selecionado
   void setTipo(String? value) {
     tipo = value;
     _safeNotifyListeners();
   }
 
+  // Atualiza data de início selecionada
   void setDataInicio(DateTime? value) {
     dataInicio = value;
     _safeNotifyListeners();
   }
 
-  // Salva projeto (criação ou edição)
+  // Cria ou edita projeto conforme projetoId existir
   Future<String?> salvarProjeto(BuildContext context) async {
     loading = true;
     _safeNotifyListeners();
@@ -110,12 +122,8 @@ class ProjectFormViewModel extends ChangeNotifier {
         SnackBar(
           content: Text(
             projetoIdCriado != null
-                ? (projetoId != null
-                    ? 'Projeto atualizado com sucesso'
-                    : 'Projeto criado com sucesso')
-                : (projetoId != null
-                    ? 'Erro ao atualizar projeto'
-                    : 'Erro ao criar projeto'),
+                ? (projetoId != null ? 'Projeto atualizado com sucesso' : 'Projeto criado com sucesso')
+                : (projetoId != null ? 'Erro ao atualizar projeto' : 'Erro ao criar projeto'),
           ),
           backgroundColor: projetoIdCriado != null ? Colors.green : Colors.red,
         ),
@@ -127,17 +135,14 @@ class ProjectFormViewModel extends ChangeNotifier {
       _safeNotifyListeners();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
       );
 
       return null;
     }
   }
 
-  // Atualização parcial sem contexto de UI
+  // Envia PATCH com campos alterados sem feedback de UI
   Future<bool> atualizarProjetoParcial() async {
     if (projetoId == null) return false;
 
@@ -164,7 +169,7 @@ class ProjectFormViewModel extends ChangeNotifier {
     }
   }
 
-  // Busca projeto por ID para preencher formulário
+  // Busca projeto por ID e carrega no formulário
   Future<void> buscarProjetoParaEdicao(String id) async {
     loading = true;
     _safeNotifyListeners();
@@ -192,27 +197,31 @@ class ProjectFormViewModel extends ChangeNotifier {
     }
   }
 
-  bool get hasChanges {
-    return nomeController.text.isNotEmpty ||
-        descricaoController.text.isNotEmpty ||
-        imagem != null ||
-        manterImagemAtual != true;
-  }
+  // Verdadeiro se há algum campo preenchido
+  bool get hasChanges =>
+      nomeController.text.isNotEmpty ||
+      descricaoController.text.isNotEmpty ||
+      imagem != null ||
+      manterImagemAtual != true;
 
-  bool get isValid {
-    return nomeController.text.trim().isNotEmpty &&
-        descricaoController.text.trim().isNotEmpty;
-  }
+  // Verdadeiro se campos obrigatórios estão preenchidos
+  bool get isValid =>
+      nomeController.text.trim().isNotEmpty &&
+      descricaoController.text.trim().isNotEmpty;
 
+  // Título dinâmico conforme modo criação ou edição
   String get screenTitle => projetoId != null ? 'Editar Projeto' : 'Novo Projeto';
 
+  // Texto do botão conforme modo criação ou edição
   String get actionButtonText => projetoId != null ? 'Atualizar' : 'Criar';
 
+  // Descarta controllers ao sair da tela
   void disposeControllers() {
     nomeController.dispose();
     descricaoController.dispose();
   }
 
+  // Notifica listeners apenas se houver algum inscrito
   void _safeNotifyListeners() {
     if (hasListeners) notifyListeners();
   }

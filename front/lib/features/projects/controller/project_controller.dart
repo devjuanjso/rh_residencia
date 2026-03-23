@@ -242,4 +242,34 @@ class ProjectController {
       return [];
     }
   }
+
+  // Busca as opções de tipo de projeto
+  static Future<Map<String, List<Map<String, String>>>> buscarChoices() async {
+    try {
+      final uri = Uri.parse('${Config.baseUrl}/projetos/choices/');
+
+      final response = await http.get(uri); // AllowAny, sem auth
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data.map(
+          (key, value) => MapEntry(
+            key,
+            (value as List)
+                .map((e) => {
+                      "value": e["value"].toString(),
+                      "label": e["label"].toString(),
+                    })
+                .toList(),
+          ),
+        );
+      }
+
+      return {};
+
+    } catch (e) {
+      print('Erro ao buscar choices: $e');
+      return {};
+    }
+  }
 }

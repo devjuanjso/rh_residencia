@@ -16,11 +16,14 @@ class ProjectFormPage extends StatefulWidget {
 }
 
 class _ProjectsFormPageState extends State<ProjectFormPage> {
+
+  // Carrega choices e projeto (se edição) após primeiro frame
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final vm = context.read<ProjectFormViewModel>();
+      vm.carregarChoices();
       if (widget.projetoId != null) {
         vm.buscarProjetoParaEdicao(widget.projetoId!);
       } else {
@@ -49,6 +52,7 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
+  // Decide entre erro de não encontrado ou formulário
   Widget _buildContent(BuildContext context, ProjectFormViewModel vm) {
     if (widget.projetoId != null && !vm.loading && vm.projetoId == null) {
       return _buildNotFoundError();
@@ -56,6 +60,7 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     return _buildFormContent(context, vm);
   }
 
+  // Tela de erro quando projeto não é encontrado
   Widget _buildNotFoundError() {
     return Center(
       child: Column(
@@ -74,6 +79,7 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
+  // Layout principal do formulário
   Widget _buildFormContent(BuildContext context, ProjectFormViewModel vm) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -96,8 +102,8 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  // ── Campos ────────────────────────────────────────────────────────────────────
 
+  // Campo de texto para nome do projeto
   Widget _buildNomeField(ProjectFormViewModel vm) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,6 +122,7 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
+  // Campo de texto para descrição do projeto
   Widget _buildDescricaoField(ProjectFormViewModel vm) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,13 +142,11 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
+  // Dropdown de tipo populado com choices da API
   Widget _buildTipoField(ProjectFormViewModel vm) {
-    const opcoes = [
-      DropdownMenuItem(value: 'produto_digital', child: Text('Produto digital')),
-      DropdownMenuItem(value: 'servico',          child: Text('Serviço')),
-      DropdownMenuItem(value: 'pesquisa',         child: Text('Pesquisa')),
-      DropdownMenuItem(value: 'outro',            child: Text('Outro')),
-    ];
+    final opcoes = vm.tiposDisponiveis
+        .map((e) => DropdownMenuItem(value: e["value"], child: Text(e["label"]!)))
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,6 +165,7 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
+  // Campo de data com date picker ao tocar
   Widget _buildDataInicioField(BuildContext context, ProjectFormViewModel vm) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,8 +193,8 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  Future<void> _selecionarData(
-      BuildContext context, ProjectFormViewModel vm) async {
+  // Abre date picker e atualiza data no viewmodel
+  Future<void> _selecionarData(BuildContext context, ProjectFormViewModel vm) async {
     final hoje = DateTime.now();
     final selecionada = await showDatePicker(
       context: context,
@@ -196,11 +202,10 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (selecionada != null) {
-      vm.setDataInicio(selecionada);
-    }
+    if (selecionada != null) vm.setDataInicio(selecionada);
   }
 
+  // Seletor de imagem com opção de manter atual na edição
   Widget _buildImagePicker(ProjectFormViewModel vm) {
     return ImagePickerField(
       label: 'Imagem do projeto (opcional)',
@@ -213,8 +218,8 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  // ── Botão salvar ──────────────────────────────────────────────────────────────
 
+  // Botão de ação desabilitado durante loading ou formulário inválido
   Widget _buildActionButton(ProjectFormViewModel vm) {
     return SizedBox(
       width: double.infinity,
@@ -231,16 +236,13 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
                 width: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Text(vm.actionButtonText,
-                style: const TextStyle(fontSize: 16)),
+            : Text(vm.actionButtonText, style: const TextStyle(fontSize: 16)),
       ),
     );
   }
 
-  Future<void> _handleSaveAction(
-    ProjectFormViewModel vm,
-    BuildContext context,
-  ) async {
+  // Salva e navega para detalhe (criação) ou volta (edição)
+  Future<void> _handleSaveAction(ProjectFormViewModel vm, BuildContext context) async {
     final projetoIdCriado = await vm.salvarProjeto(context);
 
     if (projetoIdCriado != null && context.mounted) {
