@@ -63,12 +63,13 @@ class User(AbstractUser):
     habilidades = models.JSONField(default=list, blank=True)
     certificacoes = models.JSONField(default=list, blank=True)
     formacao = models.CharField(max_length=200, blank=True, null=True)
+    linkedin = models.URLField(max_length=200, blank=True, null=True)
 
     foto = models.ImageField(upload_to="usuarios/", blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
 
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
-
+    
     def __str__(self):
         return f"{self.username} - {self.role}"

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:front/features/profile/controller/profile_controller.dart';
 import 'package:front/features/profile/view/edit_profile_page.dart';
 import 'package:front/features/profile/viewmodel/profile_viewmodel.dart';
-import 'package:provider/provider.dart';
 import 'package:front/features/auth/view/login_page.dart';
 import 'package:front/features/auth/viewmodel/auth_viewmodel.dart';
 import 'my_projects_page.dart';
@@ -16,11 +16,10 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
 
+  // Carrega perfil após primeiro frame
   @override
   void initState() {
     super.initState();
-    // Delay da inicialização para depois do primeiro frame para evitar
-    // setState/notifyListeners durante a fase de build.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final viewModel = context.read<ProfileViewModel>();
       final controller = ProfileController(viewModel);
@@ -28,14 +27,14 @@ class _ProfilePageState extends State<ProfilePage> {
       try {
         await controller.init();
       } catch (e) {
-        // Checa mensagens comuns de token expirado / sessão expirada
         final msg = e.toString().toLowerCase();
-        final isSessionExpired = msg.contains('expir') || msg.contains('token_not_valid') || msg.contains('sessão expirada') || msg.contains('session');
+        final isSessionExpired = msg.contains('expir') ||
+            msg.contains('token_not_valid') ||
+            msg.contains('sessão expirada') ||
+            msg.contains('session');
 
         if (isSessionExpired) {
-          // Limpa tokens e força retorno para tela de login
           await context.read<AuthViewModel>().logout();
-
           if (context.mounted) {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -43,7 +42,6 @@ class _ProfilePageState extends State<ProfilePage> {
             );
           }
         } else {
-          // Se for outro erro, mostra snackbar para desenvolvedor/usuário
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Erro ao carregar perfil: $e')),
@@ -61,209 +59,219 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Perfil'),
-        centerTitle: true,
+        title: const Text('Meu perfil'),
+        actions: [
+          TextButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EditProfilePage()),
+            ),
+            icon: const Icon(Icons.edit, size: 16),
+            label: const Text('Editar'),
+          ),
+        ],
       ),
       body: viewModel.isLoading
           ? const Center(child: CircularProgressIndicator())
           : profile == null
-              ? const Center(child: Text("Erro ao carregar perfil"))
+              ? const Center(child: Text('Erro ao carregar perfil'))
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
-                      /// FOTO + NOME
-                      Center(
-                        child: Column(
-                          children: [
-                            CircleAvatar(
-                              radius: 60,
-                              backgroundColor: Colors.blue,
-                              backgroundImage: profile.foto != null
-                                  ? NetworkImage(profile.foto!)
-                                  : null,
-                              child: profile.foto == null
-                                  ? const Icon(Icons.person,
-                                      size: 60, color: Colors.white)
-                                  : null,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              profile.username,
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              profile.email,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      /// INFORMAÇÕES PROFISSIONAIS
-                      _sectionTitle("Informações profissionais"),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _capsule(profile.cargo),
-                          _capsule(profile.senioridade),
-                          _capsule(profile.area),
-                          _capsule(profile.role),
-                        ],
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      /// HABILIDADES
-                      _sectionTitle("Habilidades"),
-                      const SizedBox(height: 12),
-                      profile.habilidades.isEmpty
-                          ? _emptyCapsule("Nenhuma habilidade cadastrada")
-                          : Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: profile.habilidades
-                                  .map((h) => _capsule(h))
-                                  .toList(),
-                            ),
-
-                      const SizedBox(height: 32),
-
-                      /// CERTIFICAÇÕES
-                      _sectionTitle("Certificações"),
-                      const SizedBox(height: 12),
-                      profile.certificacoes.isEmpty
-                          ? _emptyCapsule("Nenhuma certificação cadastrada")
-                          : Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: profile.certificacoes
-                                  .map((c) => _capsule(c))
-                                  .toList(),
-                            ),
-
-                      const SizedBox(height: 40),
-
-                      /// BOTÕES
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const MyProjectsPage(),
-                              ),
-                            );
-                          },
-                          child: const Text("Meus Projetos"),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const EditProfilePage(),
-                              ),
-                            );
-                          },
-                          child: const Text("Editar Perfil"),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Botão para deslogar (desfazer login)
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () async {
-                            await context.read<AuthViewModel>().logout();
-                            if (context.mounted) {
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(builder: (_) => const LoginPage()),
-                                (route) => false,
-                              );
-                            }
-                          },
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: Colors.red.shade300),
-                          ),
-                          child: const Text("Sair"),
-                        ),
-                      ),
+                      _buildHeader(profile),
+                      const SizedBox(height: 24),
+                      _buildInfoCard(profile),
+                      const SizedBox(height: 16),
+                      _buildHabilidadesCard(profile),
+                      const SizedBox(height: 16),
+                      _buildFormacaoCard(profile),
+                      const SizedBox(height: 24),
+                      _buildMeusProjetosButton(),
                     ],
                   ),
                 ),
     );
   }
 
-  /// TÍTULO DE SEÇÃO
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
+  // Avatar, nome e chips de cargo/senioridade/area
+  Widget _buildHeader(profile) {
+    return Center(
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 48,
+            backgroundColor: Colors.deepPurple,
+            backgroundImage: profile.foto != null ? NetworkImage(profile.foto!) : null,
+            child: profile.foto == null
+                ? const Icon(Icons.person, size: 48, color: Colors.white)
+                : null,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            profile.username,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              if (profile.cargo != null) _chip(profile.cargo!),
+              if (profile.senioridade != null) _chip(profile.senioridade!),
+              if (profile.area != null) _chip(profile.area!),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  /// CÁPSULA PADRÃO
-  Widget _capsule(String? text) {
-    if (text == null || text.isEmpty) {
-      return const SizedBox();
-    }
-
+  // Card com email, bio, formacao e linkedin
+  Widget _buildInfoCard(profile) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: Colors.blue.shade200),
-        color: Colors.blue.shade50,
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-        ),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInfoRow('Email', profile.email),
+          const SizedBox(height: 12),
+          _buildInfoRow('Bio', profile.bio?.isNotEmpty == true ? profile.bio! : '—'),
+          const SizedBox(height: 12),
+          _buildInfoRow('Formação', profile.formacao?.isNotEmpty == true ? profile.formacao! : '—'),
+          const SizedBox(height: 12),
+          const Text('LinkedIn', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          profile.linkedin?.isNotEmpty == true
+              ? Text(
+                  'Ver perfil no LinkedIn',
+                  style: TextStyle(
+                    color: Colors.deepPurple,
+                    decoration: TextDecoration.underline,
+                  ),
+                )
+              : const Text('—', style: TextStyle(color: Colors.grey)),
+        ],
       ),
     );
   }
 
-  /// CÁPSULA VAZIA
-  Widget _emptyCapsule(String message) {
+  // Label + valor padrão
+  Widget _buildInfoRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(color: Colors.black87)),
+      ],
+    );
+  }
+
+  // Card de habilidades em chips roxos
+  Widget _buildHabilidadesCard(profile) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Habilidades',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+          ),
+          const SizedBox(height: 12),
+          profile.habilidades.isEmpty
+              ? const Text('Nenhuma habilidade cadastrada', style: TextStyle(color: Colors.grey))
+              : Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: (profile.habilidades as List<String>)
+                      .map((h) => _chip(h))
+                      .toList(),
+                ),
+        ],
+      ),
+    );
+  }
+
+  // Card de formação em caixas com borda
+  Widget _buildFormacaoCard(profile) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Formação',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+          ),
+          const SizedBox(height: 12),
+          profile.certificacoes.isEmpty
+              ? const Text('Nenhuma formação cadastrada', style: TextStyle(color: Colors.grey))
+              : Column(
+                  children: (profile.certificacoes as List<String>)
+                      .map((c) => _formacaoItem(c))
+                      .toList(),
+                ),
+        ],
+      ),
+    );
+  }
+
+  // Item de formação com borda arredondada
+  Widget _formacaoItem(String text) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: Colors.grey.shade300),
-        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.deepPurple.shade200),
       ),
-      child: Text(
-        message,
-        style: const TextStyle(
-          color: Colors.grey,
+      child: Text(text),
+    );
+  }
+
+  // Chip roxo para habilidades e info profissional
+  Widget _chip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.deepPurple,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 13)),
+    );
+  }
+
+  // Botão de meus projetos
+  Widget _buildMeusProjetosButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MyProjectsPage()),
         ),
+        child: const Text('Meus Projetos'),
       ),
+    );
+  }
+
+  // Decoração padrão dos cards
+  BoxDecoration _cardDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.grey.shade200),
     );
   }
 }

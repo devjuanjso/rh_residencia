@@ -11,6 +11,7 @@ class ProfileModel {
   final String? formacao;
   final String? foto;
   final String? bio;
+  final String? linkedin;
 
   ProfileModel({
     required this.id,
@@ -25,6 +26,7 @@ class ProfileModel {
     this.formacao,
     this.foto,
     this.bio,
+    this.linkedin,
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class ProfileModel {
       formacao: json["formacao"],
       foto: json["foto"],
       bio: json["bio"],
+      linkedin: json["linkedin"],
     );
   }
 }
