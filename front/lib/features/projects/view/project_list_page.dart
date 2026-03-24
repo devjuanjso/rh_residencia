@@ -88,7 +88,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
     );
   }
 
-  // ── Header ───────────────────────────────────────────────────────────────────
 
   Widget _buildHeader(ProjectListViewModel vm) {
     return Column(
@@ -138,7 +137,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
     );
   }
 
-  // ── Project Card ──────────────────────────────────────────────────────────────
 
   Widget _buildProjectCard(
       BuildContext context, ProjectListViewModel vm, Project projeto) {
@@ -282,7 +280,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────────
 
   String _formatarData(DateTime data) {
     return '${data.day.toString().padLeft(2, '0')}/'
@@ -309,7 +306,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
     return map[value] ?? value;
   }
 
-  // ── Vagas List ────────────────────────────────────────────────────────────────
 
   Widget _buildVagasList(BuildContext context, ProjectListViewModel vm) {
     if (vm.loadingVagas) {

@@ -134,4 +134,17 @@ class ProjectListViewModel extends ChangeNotifier {
   bool jaSeCandidatou(String vagaId) {
     return vagasCandidatadas.contains(vagaId);
   }
+
+  Future<bool> excluirProjeto(String id) async {
+    try {
+      final sucesso = await ProjectController.excluirProjeto(id);
+      if (sucesso) {
+        projetos.removeWhere((p) => p.id == id);
+        notifyListeners();
+      }
+      return sucesso;
+    } catch (e) {
+      return false;
+    }
+  }
 }

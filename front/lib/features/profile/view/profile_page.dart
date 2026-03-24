@@ -52,6 +52,38 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  // Diálogo de confirmação de logout
+  Future<void> _confirmLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sair'),
+        content: const Text('Tem certeza que deseja sair da sua conta?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Sair'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await context.read<AuthViewModel>().logout();
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+          (route) => false,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProfileViewModel>();
@@ -68,6 +100,11 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             icon: const Icon(Icons.edit, size: 16),
             label: const Text('Editar'),
+          ),
+          IconButton(
+            onPressed: () => _confirmLogout(context),
+            icon: const Icon(Icons.logout),
+            tooltip: 'Sair',
           ),
         ],
       ),

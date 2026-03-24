@@ -11,11 +11,8 @@ import '../controller/project_controller.dart';
 
 class ProjectDetailPage extends StatefulWidget {
   final Project project;
-  
-  const ProjectDetailPage({
-    super.key,
-    required this.project,
-  });
+
+  const ProjectDetailPage({super.key, required this.project});
 
   @override
   State<ProjectDetailPage> createState() => _ProjectDetailPageState();
@@ -26,12 +23,20 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   bool _isLoading = false;
   String _errorMessage = '';
 
+  static const Color _purple = Color(0xFF6B21A8);
+  static const Color _purpleLight = Color(0xFFF3E8FF);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPositions();
+  }
+
   Future<void> _loadPositions() async {
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
-
     try {
       final positions = await ProjectController.buscarVagasPorProjeto(widget.project.id);
       setState(() {
@@ -44,36 +49,27 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         _positions.clear();
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
-  }
-
-  Future<void> _deletePosition(String positionId) async {
-    await _loadPositions();
   }
 
   void _showDeleteDialog(Position position) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar exclusão'),
-        content: Text('Excluir a vaga "${position.titulo}"?'),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Excluir vaga'),
+        content: Text('Tem certeza que deseja excluir "${position.titulo}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancelar'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
-              await _deletePosition(position.id);
+              Navigator.of(dialogContext).pop();
+              await _loadPositions();
             },
-            child: const Text(
-              'Excluir',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Excluir', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -81,57 +77,181 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _loadPositions();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
-      body: SingleChildScrollView(
+      backgroundColor: Colors.white,
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildProjectCard(),
-            _buildPositionsSection(),
+            _buildAppBar(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildCoverImage(),
+                    _buildProjectInfo(),
+                    const Divider(height: 1),
+                    _buildPositionsSection(),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  AppBar _buildAppBar() {
-    return AppBar(
-      title: Text(widget.project.nome),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: _handleAddPosition,
-          tooltip: 'Adicionar vaga',
+  Widget _buildAppBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      child: Row(
+        children: [
+          _CircleButton(
+            onTap: () => Navigator.of(context).pop(),
+            child: const Icon(Icons.chevron_left, size: 22, color: Colors.black87),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              widget.project.nome,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: _handleAddPosition,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(color: _purple, shape: BoxShape.circle),
+              child: const Icon(Icons.add, color: Colors.white, size: 20),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoverImage() {
+    if (widget.project.imagem != null && widget.project.imagem!.isNotEmpty) {
+      return SizedBox(
+        height: 160,
+        width: double.infinity,
+        child: Image.network(
+          widget.project.imagem!,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _placeholderCover(),
+        ),
+      );
+    }
+    return _placeholderCover();
+  }
+
+  Widget _placeholderCover() {
+    return Container(
+      height: 160,
+      width: double.infinity,
+      color: Colors.grey[900],
+      child: const Center(child: Icon(Icons.image_outlined, color: Colors.white30, size: 48)),
+    );
+  }
+
+  Widget _buildProjectInfo() {
+    final p = widget.project;
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  p.nome,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+              ),
+              const SizedBox(width: 10),
+              _buildRascunhoBadge(p.rascunho),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(p.descricao, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+          const SizedBox(height: 14),
+          if (p.tipo != null) _buildMetaRow(Icons.info_outline, _formatTipo(p.tipo!)),
+          if (p.dataInicio != null) ...[
+            const SizedBox(height: 6),
+            _buildMetaRow(Icons.calendar_today_outlined, 'Início: ${_formatDate(p.dataInicio!)}'),
+          ],
+          if (p.criadoPorNome != null) ...[
+            const SizedBox(height: 6),
+            _buildMetaRow(Icons.people_outline, 'Criado por ${p.criadoPorNome!}'),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRascunhoBadge(bool rascunho) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: rascunho ? Colors.orange.shade100 : _purple,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        rascunho ? 'Rascunho' : 'Publicado',
+        style: TextStyle(
+          color: rascunho ? Colors.orange.shade800 : Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetaRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: Colors.grey[500]),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildProjectCard() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: ProjectCard(
-        project: widget.project,
-        showPositionsButton: false,
-      ),
-    );
-  }
-
   Widget _buildPositionsSection() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildPositionsTitle(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Vagas disponíveis',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              if (!_isLoading && _positions.isNotEmpty)
+                Text(
+                  '${_positions.length} ${_positions.length == 1 ? 'vaga' : 'vagas'}',
+                  style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                ),
+            ],
+          ),
           const SizedBox(height: 16),
           _buildPositionsContent(),
         ],
@@ -139,54 +259,40 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  Widget _buildPositionsTitle() {
-    return const Text(
-      'Vagas disponíveis',
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
   Widget _buildPositionsContent() {
-    return LoadingOverlay(
-      isLoading: _isLoading,
-      message: 'Carregando vagas...',
-      child: _buildPositionsList(),
-    );
-  }
-
-  Widget _buildPositionsList() {
-    if (_errorMessage.isNotEmpty) {
-      return _buildErrorState();
+    if (_isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 40),
+          child: CircularProgressIndicator(color: _purple, strokeWidth: 2),
+        ),
+      );
     }
-
-    if (_positions.isEmpty) {
-      return _buildEmptyPositionsState();
-    }
-
-    return _buildPositionsListView();
+    if (_errorMessage.isNotEmpty) return _buildErrorState();
+    if (_positions.isEmpty) return _buildEmptyState();
+    return Column(children: _positions.map(_buildVagaCard).toList());
   }
 
   Widget _buildErrorState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(vertical: 32),
         child: Column(
           children: [
-            const Icon(Icons.error_outline, size: 60, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              _errorMessage,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
-            ),
+            Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+            const SizedBox(height: 12),
+            Text(_errorMessage, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: _loadPositions,
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh, size: 16),
               label: const Text('Tentar novamente'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _purple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                elevation: 0,
+              ),
             ),
           ],
         ),
@@ -194,40 +300,110 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  Widget _buildEmptyPositionsState() {
-    return EmptyState(
-      icon: Icons.work_outline,
-      title: 'Nenhuma vaga disponível',
-      description: 'Adicione a primeira vaga para este projeto',
-      action: ElevatedButton.icon(
-        icon: const Icon(Icons.add),
-        label: const Text('Criar vaga'),
-        onPressed: _handleAddPosition,
+  Widget _buildEmptyState() {
+    return SizedBox(
+      height: 300,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.work_outline, size: 64, color: Colors.grey[300]),
+            const SizedBox(height: 12),
+            Text('Nenhuma vaga disponível',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.grey[500])),
+            const SizedBox(height: 6),
+            Text('Adicione a primeira vaga para este projeto',
+                style: TextStyle(fontSize: 13, color: Colors.grey[400]), textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _handleAddPosition,
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('Criar vaga'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _purple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                elevation: 0,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildPositionsListView() {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _positions.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final position = _positions[index];
-        return _buildPositionListItem(position);
-      },
-    );
-  }
-
-  Widget _buildPositionListItem(Position position) {
-    return PositionListItem(
-      position: position,
-      onViewDetails: () => _handleViewDetails(position),
-      onEdit: () => _handleEditPosition(position),
-      onDelete: () => _showDeleteDialog(position),
-      showEducation: true,
-      showCertifications: true,
+  Widget _buildVagaCard(Position position) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: InkWell(
+        onTap: () => _handleViewDetails(position),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                position.titulo,
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              if (position.descricao != null && position.descricao!.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  position.descricao!,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _handleEditPosition(position),
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(Icons.edit_outlined, color: _purple, size: 18),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _showDeleteDialog(position),
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _handleViewDetails(position),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(color: _purpleLight, borderRadius: BorderRadius.circular(20)),
+                      child: const Text(
+                        'Ver detalhes',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _purple),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -235,41 +411,58 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PositionFormPage(
-          projetoId: widget.project.id,
-          projetoNome: widget.project.nome,
-        ),
+        builder: (_) => PositionFormPage(projetoId: widget.project.id, projetoNome: widget.project.nome),
       ),
     );
-    
-    if (result == true && mounted) {
-      await _loadPositions();
-    }
+    if (result == true && mounted) await _loadPositions();
   }
 
   void _handleViewDetails(Position position) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PositionDetailPage(position: position),
-      ),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (_) => PositionDetailPage(position: position)));
   }
 
   Future<void> _handleEditPosition(Position position) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PositionFormPage(
-          vaga: position,
-          projetoId: widget.project.id,
-          projetoNome: widget.project.nome,
-        ),
+        builder: (_) => PositionFormPage(vaga: position, projetoId: widget.project.id, projetoNome: widget.project.nome),
       ),
     );
-    
-    if (result == true && mounted) {
-      await _loadPositions();
-    }
+    if (result == true && mounted) await _loadPositions();
+  }
+
+  String _formatTipo(String tipo) {
+    const labels = {
+      'produto_digital': 'Produto digital',
+      'servico': 'Serviço',
+      'pesquisa': 'Pesquisa',
+      'outro': 'Outro',
+    };
+    return labels[tipo] ?? tipo;
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+}
+
+class _CircleButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final Widget child;
+
+  const _CircleButton({required this.onTap, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey.shade300)),
+        alignment: Alignment.center,
+        child: child,
+      ),
+    );
   }
 }
