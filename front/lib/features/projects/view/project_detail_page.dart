@@ -21,7 +21,9 @@ class ProjectDetailPage extends StatefulWidget {
 class _ProjectDetailPageState extends State<ProjectDetailPage> {
   final List<Position> _positions = [];
   bool _isLoading = false;
+  bool _isTogglingStatus = false;
   String _errorMessage = '';
+  late bool _isRascunho;
 
   static const Color _purple = Color(0xFF6B21A8);
   static const Color _purpleLight = Color(0xFFF3E8FF);
@@ -29,6 +31,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   @override
   void initState() {
     super.initState();
+    _isRascunho = widget.project.rascunho;
     _loadPositions();
   }
 
@@ -38,7 +41,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       _errorMessage = '';
     });
     try {
-      final positions = await ProjectController.buscarVagasPorProjeto(widget.project.id);
+      final positions =
+          await ProjectController.buscarVagasPorProjeto(widget.project.id);
       setState(() {
         _positions.clear();
         _positions.addAll(positions);
@@ -50,6 +54,48 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       });
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  /// Alterna entre publicado (rascunho=false) e rascunho (rascunho=true)
+  Future<void> _handleToggleStatus() async {
+    final novoStatus = !_isRascunho; // true = será rascunho, false = publicado
+    setState(() => _isTogglingStatus = true);
+
+    try {
+      final sucesso = await ProjectController.atualizarProjetoParcial(
+        projetoId: widget.project.id,
+        rascunho: novoStatus,
+      );
+
+      if (sucesso && mounted) {
+        setState(() => _isRascunho = novoStatus);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              novoStatus
+                  ? 'Projeto movido para rascunho'
+                  : 'Projeto publicado com sucesso!',
+            ),
+            backgroundColor: novoStatus ? Colors.orange : Colors.green,
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao atualizar status do projeto'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isTogglingStatus = false);
     }
   }
 
@@ -110,13 +156,17 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         children: [
           _CircleButton(
             onTap: () => Navigator.of(context).pop(),
-            child: const Icon(Icons.chevron_left, size: 22, color: Colors.black87),
+            child: const Icon(Icons.chevron_left,
+                size: 22, color: Colors.black87),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               widget.project.nome,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -127,7 +177,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             child: Container(
               width: 36,
               height: 36,
-              decoration: const BoxDecoration(color: _purple, shape: BoxShape.circle),
+              decoration:
+                  const BoxDecoration(color: _purple, shape: BoxShape.circle),
               child: const Icon(Icons.add, color: Colors.white, size: 20),
             ),
           ),
@@ -156,7 +207,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       height: 160,
       width: double.infinity,
       color: Colors.grey[900],
-      child: const Center(child: Icon(Icons.image_outlined, color: Colors.white30, size: 48)),
+      child: const Center(
+          child:
+              Icon(Icons.image_outlined, color: Colors.white30, size: 48)),
     );
   }
 
@@ -173,25 +226,113 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               Expanded(
                 child: Text(
                   p.nome,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87),
                 ),
               ),
               const SizedBox(width: 10),
-              _buildRascunhoBadge(p.rascunho),
+              _buildRascunhoBadge(_isRascunho),
             ],
           ),
           const SizedBox(height: 8),
-          Text(p.descricao, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+          Text(p.descricao,
+              style: TextStyle(fontSize: 13, color: Colors.grey[600])),
           const SizedBox(height: 14),
-          if (p.tipo != null) _buildMetaRow(Icons.info_outline, _formatTipo(p.tipo!)),
+          if (p.tipo != null)
+            _buildMetaRow(Icons.info_outline, _formatTipo(p.tipo!)),
           if (p.dataInicio != null) ...[
             const SizedBox(height: 6),
-            _buildMetaRow(Icons.calendar_today_outlined, 'Início: ${_formatDate(p.dataInicio!)}'),
+            _buildMetaRow(Icons.calendar_today_outlined,
+                'Início: ${_formatDate(p.dataInicio!)}'),
           ],
           if (p.criadoPorNome != null) ...[
             const SizedBox(height: 6),
-            _buildMetaRow(Icons.people_outline, 'Criado por ${p.criadoPorNome!}'),
+            _buildMetaRow(
+                Icons.people_outline, 'Criado por ${p.criadoPorNome!}'),
           ],
+
+          // Toggle ativar / desativar — sempre visível
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          const SizedBox(height: 16),
+          _buildStatusToggle(),
+        ],
+      ),
+    );
+  }
+
+  /// Card com Switch para ativar (publicar) ou desativar (rascunho) o projeto
+  Widget _buildStatusToggle() {
+    final isPublicado = !_isRascunho;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isPublicado
+            ? const Color(0xFFF3E8FF)
+            : Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isPublicado
+              ? const Color(0xFFD8B4FE)
+              : Colors.orange.shade200,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isPublicado ? Icons.public : Icons.public_off_outlined,
+            size: 20,
+            color: isPublicado ? _purple : Colors.orange.shade700,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isPublicado ? 'Projeto publicado' : 'Projeto em rascunho',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isPublicado ? _purple : Colors.orange.shade800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isPublicado
+                      ? 'Visível para candidatos'
+                      : 'Não visível para candidatos',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isPublicado
+                        ? Colors.purple.shade400
+                        : Colors.orange.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _isTogglingStatus
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: isPublicado ? _purple : Colors.orange.shade700,
+                  ),
+                )
+              : Switch(
+                  value: isPublicado,
+                  onChanged: (_) => _handleToggleStatus(),
+                  activeColor: _purple,
+                  activeTrackColor: const Color(0xFFD8B4FE),
+                  inactiveThumbColor: Colors.orange.shade400,
+                  inactiveTrackColor: Colors.orange.shade100,
+                ),
         ],
       ),
     );
@@ -243,7 +384,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             children: [
               const Text(
                 'Vagas disponíveis',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87),
               ),
               if (!_isLoading && _positions.isNotEmpty)
                 Text(
@@ -281,7 +425,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
           children: [
             Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
             const SizedBox(height: 12),
-            Text(_errorMessage, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+            Text(_errorMessage,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600], fontSize: 13)),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: _loadPositions,
@@ -290,7 +436,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _purple,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24)),
                 elevation: 0,
               ),
             ),
@@ -310,10 +457,14 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             Icon(Icons.work_outline, size: 64, color: Colors.grey[300]),
             const SizedBox(height: 12),
             Text('Nenhuma vaga disponível',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.grey[500])),
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[500])),
             const SizedBox(height: 6),
             Text('Adicione a primeira vaga para este projeto',
-                style: TextStyle(fontSize: 13, color: Colors.grey[400]), textAlign: TextAlign.center),
+                style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                textAlign: TextAlign.center),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _handleAddPosition,
@@ -322,8 +473,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _purple,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24)),
                 elevation: 0,
               ),
             ),
@@ -351,9 +504,13 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             children: [
               Text(
                 position.titulo,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87),
               ),
-              if (position.descricao != null && position.descricao!.isNotEmpty) ...[
+              if (position.descricao != null &&
+                  position.descricao!.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(
                   position.descricao!,
@@ -373,7 +530,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     onTap: () => _handleEditPosition(position),
                     child: const Padding(
                       padding: EdgeInsets.all(6),
-                      child: Icon(Icons.edit_outlined, color: _purple, size: 18),
+                      child: Icon(Icons.edit_outlined,
+                          color: _purple, size: 18),
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -382,7 +540,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     onTap: () => _showDeleteDialog(position),
                     child: const Padding(
                       padding: EdgeInsets.all(6),
-                      child: Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                      child: Icon(Icons.delete_outline,
+                          color: Colors.red, size: 18),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -390,11 +549,17 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     behavior: HitTestBehavior.opaque,
                     onTap: () => _handleViewDetails(position),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(color: _purpleLight, borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                          color: _purpleLight,
+                          borderRadius: BorderRadius.circular(20)),
                       child: const Text(
                         'Ver detalhes',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _purple),
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _purple),
                       ),
                     ),
                   ),
@@ -411,21 +576,29 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PositionFormPage(projetoId: widget.project.id, projetoNome: widget.project.nome),
+        builder: (_) => PositionFormPage(
+            projetoId: widget.project.id,
+            projetoNome: widget.project.nome),
       ),
     );
     if (result == true && mounted) await _loadPositions();
   }
 
   void _handleViewDetails(Position position) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => PositionDetailPage(position: position)));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => PositionDetailPage(position: position)));
   }
 
   Future<void> _handleEditPosition(Position position) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PositionFormPage(vaga: position, projetoId: widget.project.id, projetoNome: widget.project.nome),
+        builder: (_) => PositionFormPage(
+            vaga: position,
+            projetoId: widget.project.id,
+            projetoNome: widget.project.nome),
       ),
     );
     if (result == true && mounted) await _loadPositions();
@@ -459,7 +632,9 @@ class _CircleButton extends StatelessWidget {
       child: Container(
         width: 36,
         height: 36,
-        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey.shade300)),
+        decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.grey.shade300)),
         alignment: Alignment.center,
         child: child,
       ),

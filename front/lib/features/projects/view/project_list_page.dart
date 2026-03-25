@@ -88,7 +88,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
     );
   }
 
-
   Widget _buildHeader(ProjectListViewModel vm) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +135,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
       ),
     );
   }
-
 
   Widget _buildProjectCard(
       BuildContext context, ProjectListViewModel vm, Project projeto) {
@@ -280,7 +278,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
     );
   }
 
-
   String _formatarData(DateTime data) {
     return '${data.day.toString().padLeft(2, '0')}/'
         '${data.month.toString().padLeft(2, '0')}/'
@@ -294,18 +291,6 @@ class _ProjectListPageState extends State<ProjectListPage> {
         .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
         .join(' ');
   }
-
-  String _formatarSenioridade(String value) {
-    const map = {
-      'estagio':      'Estágio',
-      'junior':       'Júnior',
-      'pleno':        'Pleno',
-      'senior':       'Sênior',
-      'especialista': 'Especialista',
-    };
-    return map[value] ?? value;
-  }
-
 
   Widget _buildVagasList(BuildContext context, ProjectListViewModel vm) {
     if (vm.loadingVagas) {
@@ -330,93 +315,34 @@ class _ProjectListPageState extends State<ProjectListPage> {
         final jaCandidatado = vm.jaSeCandidatou(vaga.id);
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: _buildVagaCollapsibleItem(context, vm, vaga, jaCandidatado),
+          // ✅ CORRIGIDO: sem ExpansionTile aqui — o PositionListItem já tem seu próprio toggle
+          child: PositionListItem(
+            position: vaga,
+            applied: jaCandidatado,
+            onApply: jaCandidatado
+                ? null
+                : () async {
+                    try {
+                      final sucesso = await vm.candidatarSe(vaga.id);
+                      if (sucesso) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Candidatura enviada com sucesso!"),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Erro: $e")),
+                      );
+                    }
+                  },
+            showActions: true,
+            showEducation: false,
+            showCertifications: false,
+          ),
         );
       }).toList(),
-    );
-  }
-
-  Widget _buildVagaCollapsibleItem(
-    BuildContext context,
-    ProjectListViewModel vm,
-    Position vaga,
-    bool jaCandidatado,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  vaga.titulo,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              if (vaga.senioridade != null) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade800,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    _formatarSenioridade(vaga.senioridade!),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: PositionListItem(
-                position: vaga,
-                applied: jaCandidatado,
-                onApply: jaCandidatado
-                    ? null
-                    : () async {
-                        try {
-                          final sucesso = await vm.candidatarSe(vaga.id);
-                          if (sucesso) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Candidatura enviada com sucesso!"),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Erro: $e")),
-                          );
-                        }
-                      },
-                showActions: true,
-                showEducation: false,
-                showCertifications: false,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -38,7 +38,7 @@ class ProjectController {
       if (tipo != null) request.fields['tipo'] = tipo;
       if (dataInicio != null) {
         request.fields['data_inicio'] =
-            dataInicio.toIso8601String().split('T').first; // "yyyy-MM-dd"
+            dataInicio.toIso8601String().split('T').first;
       }
 
       if (imagem != null) {
@@ -134,6 +134,7 @@ class ProjectController {
     File? imagem,
     String? tipo,
     DateTime? dataInicio,
+    bool? rascunho, // ← adicionado
   }) async {
     try {
       final uri = Uri.parse('${Config.baseUrl}/projetos/$projetoId/');
@@ -148,6 +149,9 @@ class ProjectController {
       if (dataInicio != null) {
         request.fields['data_inicio'] =
             dataInicio.toIso8601String().split('T').first;
+      }
+      if (rascunho != null) {
+        request.fields['rascunho'] = rascunho.toString(); // "true" ou "false"
       }
 
       if (imagem != null) {
@@ -248,7 +252,7 @@ class ProjectController {
     try {
       final uri = Uri.parse('${Config.baseUrl}/projetos/choices/');
 
-      final response = await http.get(uri); // AllowAny, sem auth
+      final response = await http.get(uri);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
