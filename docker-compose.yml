@@ -8,32 +8,32 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./backend:/app
+      - embeddings_cache:/app/recomendacao/ml_models/embeddings_cache
     ports:
       - "8000:8000"
     depends_on:
-      - ollama
       - ai-service
     environment:
-      - OLLAMA_URL=http://ollama:11434
+      - AI_SERVICE_URL=http://ai-service:8001 
     networks:
       - rh-net
-
 
   ai-service:
     build: ./ai-service
     container_name: ai-service
     command: uvicorn main:app --host 0.0.0.0 --port 8001
+    volumes:
+      - embeddings_cache:/app/embeddings_cache
     ports:
       - "8001:8001"
     depends_on:
-      - ollama
+      ollama-init:
+        condition: service_completed_successfully  
     environment:
       - OLLAMA_URL=http://ollama:11434
     networks:
       - rh-net
 
-
-  # Servidor Ollama
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -44,10 +44,9 @@ services:
     networks:
       - rh-net
 
-
-  # Serviço que baixa o modelo automaticamente
   ollama-init:
     image: ollama/ollama:latest
+    container_name: ollama-init
     depends_on:
       - ollama
     environment:
@@ -58,17 +57,18 @@ services:
       until ollama list > /dev/null 2>&1; do
         sleep 2;
       done;
-      echo '📦 Baixando modelo llama3.2:3b...';
+      echo '📦 Baixando llama3.2:3b...';
       ollama pull llama3.2:3b;
-      echo '✅ Modelo baixado com sucesso!';
+      echo '📦 Baixando nomic-embed-text...';
+      ollama pull nomic-embed-text;
+      echo '✅ Modelos prontos!';
       "
     networks:
       - rh-net
 
-
 volumes:
   ollama_data:
-
+  embeddings_cache:
 
 networks:
   rh-net:
