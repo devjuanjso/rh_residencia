@@ -1,8 +1,37 @@
+class ChoiceOption {
+  final String value;
+  final String label;
+
+  const ChoiceOption({required this.value, required this.label});
+
+  factory ChoiceOption.fromJson(Map<String, dynamic> json) => ChoiceOption(
+        value: json['value'] as String,
+        label: json['label'] as String,
+      );
+}
+
+class PositionChoices {
+  final List<ChoiceOption> senioridades;
+  final List<ChoiceOption> areas;
+
+  const PositionChoices({required this.senioridades, required this.areas});
+
+  factory PositionChoices.fromJson(Map<String, dynamic> json) => PositionChoices(
+        senioridades: (json['senioridades'] as List)
+            .map((e) => ChoiceOption.fromJson(e))
+            .toList(),
+        areas: (json['areas'] as List)
+            .map((e) => ChoiceOption.fromJson(e))
+            .toList(),
+      );
+}
+
 class Position {
   final String id;
   final String titulo;
   final String? descricao;
   final String? senioridade;
+  final String? area;
   final List<String> habilidadesRequeridas;
   final List<String> certificacoesRequeridas;
   final String? formacaoDesejada;
@@ -13,6 +42,7 @@ class Position {
     required this.titulo,
     this.descricao,
     this.senioridade,
+    this.area,
     required this.habilidadesRequeridas,
     required this.certificacoesRequeridas,
     this.formacaoDesejada,
@@ -25,6 +55,7 @@ class Position {
       titulo: json['titulo'] ?? '',
       descricao: json['descricao'],
       senioridade: json['senioridade'],
+      area: json['area'],
       habilidadesRequeridas:
           (json['habilidades_requeridas'] as List?)?.cast<String>() ?? [],
       certificacoesRequeridas:

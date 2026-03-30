@@ -13,6 +13,23 @@ class Vaga(models.Model):
         SENIOR     = "senior",     "Sênior"
         ESPECIALISTA = "especialista", "Especialista"
 
+    class Area(models.TextChoices):
+        INOVACAO      = "inovacao",      "Inovação"
+        TECNOLOGIA    = "tecnologia",    "Tecnologia"
+        DADOS         = "dados",         "Dados"
+        DESIGN        = "design",        "Design"
+        PRODUTO       = "produto",       "Produto"
+        NEGOCIOS      = "negocios",      "Negócios"
+        MARKETING     = "marketing",     "Marketing"
+        OPERACOES     = "operacoes",     "Operações"
+
+    area = models.CharField(
+        max_length=20,
+        choices=Area.choices,
+        blank=True,
+        null=True,
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     projeto = models.ForeignKey(
@@ -20,7 +37,6 @@ class Vaga(models.Model):
     )
 
     titulo = models.CharField(max_length=120)
-    descricao = models.TextField()
 
     senioridade = models.CharField(
         max_length=20,

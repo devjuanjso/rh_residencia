@@ -7,6 +7,7 @@ import '../model/position_model.dart';
 class PositionController {
   static final SecureStorageService _storage = SecureStorageService();
 
+  // Monta headers com token de autenticação
   static Future<Map<String, String>> _headers() async {
     final token = await _storage.getToken();
     return {
@@ -15,11 +16,27 @@ class PositionController {
     };
   }
 
+  // Busca opções disponíveis para preenchimento de vaga
+  static Future<PositionChoices> getChoices() async {
+    final response = await http.get(
+      Uri.parse('${Config.baseUrl}/vagas/choices/'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return PositionChoices.fromJson(jsonDecode(response.body));
+    }
+
+    throw Exception(response.body);
+  }
+
+  // Cria uma nova vaga vinculada a um projeto
   static Future<Position> create({
     required String projetoId,
     required String titulo,
     String? descricao,
     String? senioridade,
+    String? area,
     required List<String> habilidadesRequeridas,
     required List<String> certificacoesRequeridas,
     String? formacaoDesejada,
@@ -32,6 +49,7 @@ class PositionController {
         'titulo': titulo,
         'descricao': descricao,
         'senioridade': senioridade,
+        'area': area,
         'habilidades_requeridas': habilidadesRequeridas,
         'certificacoes_requeridas': certificacoesRequeridas,
         'formacao_desejada': formacaoDesejada,
@@ -45,6 +63,7 @@ class PositionController {
     throw Exception(response.body);
   }
 
+  // Lista vagas, filtrando por projeto se informado
   static Future<List<Position>> list({String? projetoId}) async {
     final uri = projetoId != null
         ? Uri.parse('${Config.baseUrl}/vagas/')
@@ -61,6 +80,7 @@ class PositionController {
     throw Exception(response.body);
   }
 
+  // Busca uma vaga pelo ID
   static Future<Position> getById(String id) async {
     final response = await http.get(
       Uri.parse('${Config.baseUrl}/vagas/$id/'),
@@ -74,12 +94,14 @@ class PositionController {
     throw Exception(response.body);
   }
 
+  // Atualiza todos os campos de uma vaga (PUT)
   static Future<Position> update({
     required String id,
     required String projetoId,
     required String titulo,
     String? descricao,
     String? senioridade,
+    String? area,
     required List<String> habilidadesRequeridas,
     required List<String> certificacoesRequeridas,
     String? formacaoDesejada,
@@ -92,6 +114,7 @@ class PositionController {
         'titulo': titulo,
         'descricao': descricao,
         'senioridade': senioridade,
+        'area': area,
         'habilidades_requeridas': habilidadesRequeridas,
         'certificacoes_requeridas': certificacoesRequeridas,
         'formacao_desejada': formacaoDesejada,
@@ -105,6 +128,7 @@ class PositionController {
     throw Exception(response.body);
   }
 
+  // Atualiza parcialmente uma vaga (PATCH)
   static Future<Position> patch({
     required String id,
     required Map<String, dynamic> data,
@@ -122,6 +146,7 @@ class PositionController {
     throw Exception(response.body);
   }
 
+  // Remove uma vaga pelo ID
   static Future<void> delete(String id) async {
     final response = await http.delete(
       Uri.parse('${Config.baseUrl}/vagas/$id/'),

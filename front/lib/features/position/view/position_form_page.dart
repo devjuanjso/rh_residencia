@@ -23,13 +23,17 @@ class PositionFormPage extends StatefulWidget {
 class _PositionFormPageState extends State<PositionFormPage> {
   late PositionFormViewModel _viewModel;
 
+  static const _purple = Color(0xFF6B4EFF);
+  static const _bgGrey = Color(0xFFF4F4F6);
+
   @override
   void initState() {
     super.initState();
     _viewModel = PositionFormViewModel()
       ..setProjetoFixo(widget.projetoId)
       ..carregarProjetoParaDisplay(widget.projetoId, widget.projetoNome)
-      ..carregarParaEdicao(widget.vaga);
+      ..carregarParaEdicao(widget.vaga)
+      ..carregarChoices();
   }
 
   @override
@@ -37,176 +41,309 @@ class _PositionFormPageState extends State<PositionFormPage> {
     return ChangeNotifierProvider.value(
       value: _viewModel,
       child: Consumer<PositionFormViewModel>(
-        builder: (context, vm, _) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(vm.isEdit ? 'Editar Vaga' : 'Criar Vaga'),
-              centerTitle: true,
+        builder: (context, vm, _) => Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            centerTitle: true,
+            leading: const BackButton(color: Colors.black),
+            title: Text(
+              vm.isEdit ? 'Editar Vaga' : 'Nova Vaga',
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+              ),
             ),
-            body: _buildForm(context, vm),
-          );
-        },
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+          body: _buildBody(context, vm),
+        ),
       ),
     );
   }
 
-  Widget _buildForm(BuildContext context, PositionFormViewModel vm) {
+  // Corpo principal com scroll
+  Widget _buildBody(BuildContext context, PositionFormViewModel vm) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildRequiredField('Projeto', _buildProjetoField(vm)),
+          _buildInfoBanner(vm),
           const SizedBox(height: 16),
-
-          _buildRequiredField(
-            'Título',
-            TextField(
-              controller: vm.tituloController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Digite o título da vaga',
-              ),
+          Container(
+            decoration: BoxDecoration(
+              color: _bgGrey,
+              borderRadius: BorderRadius.circular(12),
             ),
-          ),
-          const SizedBox(height: 16),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  vm.isEdit ? 'Editar Vaga' : 'Adicionar Vaga',
+                  style: const TextStyle(
+                    color: _purple,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
 
-          _buildRequiredField(
-            'Descrição',
-            TextField(
-              controller: vm.descricaoController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Descreva as responsabilidades da vaga',
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
+                // Título da vaga
+                _buildLabel('Título da vaga', required: true),
+                const SizedBox(height: 6),
+                _buildTextField(
+                  controller: vm.tituloController,
+                  hint: 'Ex: Desenvolvedor Backend',
+                ),
+                const SizedBox(height: 14),
 
-          _buildOptionalField(
-            'Senioridade (Opcional)',
-            DropdownButtonFormField<String>(
-              value: vm.senioridade,
-              hint: const Text('Selecione a senioridade'),
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: PositionFormViewModel.senioridadeOpcoes,
-              onChanged: vm.setSenioridade,
-            ),
-          ),
-          const SizedBox(height: 24),
+                // Nível de senioridade
+                _buildLabel('Nível', required: true),
+                const SizedBox(height: 6),
+                vm.loadingChoices
+                    ? const LinearProgressIndicator()
+                    : _buildDropdown(
+                        value: vm.senioridade,
+                        hint: 'Selecionar',
+                        items: vm.senioridadeOpcoes
+                            .map((c) => DropdownMenuItem(
+                                  value: c.value,
+                                  child: Text(c.label),
+                                ))
+                            .toList(),
+                        onChanged: vm.setSenioridade,
+                      ),
+                const SizedBox(height: 14),
 
-          SkillInputSection(
-            title: 'Habilidades Requeridas',
-            controller: vm.habilidadeController,
-            items: vm.habilidadesRequeridas,
-            onAdd: vm.adicionarHabilidade,
-            onRemove: vm.removerHabilidade,
-            hintText: 'Ex: Flutter, Dart, Firebase',
-          ),
-          const SizedBox(height: 24),
+                // Área de atuação
+                _buildLabel('Área', required: true),
+                const SizedBox(height: 6),
+                vm.loadingChoices
+                    ? const LinearProgressIndicator()
+                    : _buildDropdown(
+                        value: vm.area,
+                        hint: 'Selecionar',
+                        items: vm.areaOpcoes
+                            .map((c) => DropdownMenuItem(
+                                  value: c.value,
+                                  child: Text(c.label),
+                                ))
+                            .toList(),
+                        onChanged: vm.setArea,
+                      ),
+                const SizedBox(height: 14),
 
-          SkillInputSection(
-            title: 'Certificações Requeridas',
-            controller: vm.certificacoesController,
-            items: vm.certificacoesRequeridas,
-            onAdd: vm.adicionarCertificacao,
-            onRemove: vm.removerCertificacao,
-            hintText: 'Ex: AWS Certified, Scrum Master',
-          ),
-          const SizedBox(height: 24),
+                // Habilidades técnicas requeridas
+                _buildLabel('Habilidades requeridas', required: true),
+                const SizedBox(height: 6),
+                SkillInputSection(
+                  title: '',
+                  controller: vm.habilidadeController,
+                  items: vm.habilidadesRequeridas,
+                  onAdd: vm.adicionarHabilidade,
+                  onRemove: vm.removerHabilidade,
+                  hintText: 'Ex: Java',
+                ),
+                const SizedBox(height: 14),
 
-          _buildOptionalField(
-            'Formação Desejada (Opcional)',
-            TextField(
-              controller: vm.formacaoController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Ex: Ciência da Computação, Engenharia de Software',
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
+                // Certificações opcionais
+                _buildLabel('Certificações requeridas'),
+                const SizedBox(height: 6),
+                SkillInputSection(
+                  title: '',
+                  controller: vm.certificacoesController,
+                  items: vm.certificacoesRequeridas,
+                  onAdd: vm.adicionarCertificacao,
+                  onRemove: vm.removerCertificacao,
+                  hintText: 'Ex: AWS Certified',
+                ),
+                const SizedBox(height: 14),
 
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: vm.loading ? null : () => vm.salvarVaga(context),
-              child: vm.loading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : Text(
-                      vm.isEdit ? 'ATUALIZAR VAGA' : 'SALVAR VAGA',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                // Formação acadêmica desejada (opcional)
+                _buildLabel('Formação desejada'),
+                const SizedBox(height: 6),
+                _buildTextField(
+                  controller: vm.formacaoController,
+                  hint: 'Ex: Ciência da Computação',
+                ),
+                const SizedBox(height: 24),
+
+                // Botão de salvar
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: vm.loading ? null : () => vm.salvarVaga(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _purple,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
+                    icon: vm.loading
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.check),
+                    label: Text(
+                      vm.loading
+                          ? 'Salvando...'
+                          : vm.isEdit
+                              ? 'Atualizar vaga'
+                              : 'Adicionar vaga',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _buildProjetoField(PositionFormViewModel vm) {
+  // Banner informativo com nome do projeto
+  Widget _buildInfoBanner(PositionFormViewModel vm) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[400]!),
-        borderRadius: BorderRadius.circular(4),
+        color: const Color(0xFFDCEEFD),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.folder, color: Colors.blue),
-          const SizedBox(width: 12),
+          const Icon(Icons.info_outline, color: Color(0xFF3A7FD5), size: 20),
+          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              vm.projetoNome ?? 'Carregando...',
-              style: const TextStyle(fontSize: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  vm.isEdit ? 'Editando vaga' : 'Etapa 2: Informações da Vaga',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A2E),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  vm.projetoNome != null
+                      ? 'Projeto: ${vm.projetoNome}'
+                      : 'Preencha as informações da vaga',
+                  style: const TextStyle(
+                    color: Color(0xFF1A1A2E),
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 12),
-          const Icon(Icons.lock, color: Colors.grey, size: 18),
         ],
       ),
     );
   }
 
-  Widget _buildRequiredField(String label, Widget field) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  // Label do campo com asterisco se obrigatório
+  Widget _buildLabel(String text, {bool required = false}) {
+    return Row(
       children: [
-        Row(
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-            const SizedBox(width: 4),
-            const Text(
-              '*',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-            ),
-          ],
+        Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: Colors.black87,
+          ),
         ),
-        const SizedBox(height: 8),
-        field,
+        if (required) const Text(' *', style: TextStyle(color: Colors.red)),
       ],
     );
   }
 
-  Widget _buildOptionalField(String label, Widget field) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+  // Campo de texto padrão do formulário
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    int maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
         ),
-        const SizedBox(height: 8),
-        field,
-      ],
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _purple),
+        ),
+      ),
+    );
+  }
+
+  // Dropdown padrão do formulário
+  Widget _buildDropdown({
+    required String? value,
+    required String hint,
+    required List<DropdownMenuItem<String>> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _purple),
+        ),
+      ),
+      hint: Text(hint, style: TextStyle(color: Colors.grey[400], fontSize: 14)),
+      items: items,
+      onChanged: onChanged,
     );
   }
 }
