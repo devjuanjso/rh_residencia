@@ -26,7 +26,6 @@ class PositionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(),
-          _buildDescription(),
           _buildSkills(),
         ],
       ),
@@ -95,28 +94,12 @@ class PositionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        _formatarSenioridade(senioridade),
+        senioridade,
         style: const TextStyle(
           color: Colors.white,
           fontSize: 11,
           fontWeight: FontWeight.w500,
         ),
-      ),
-    );
-  }
-
-  Widget _buildDescription() {
-    if (position.descricao == null || position.descricao!.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Text(
-        position.descricao!,
-        style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -142,16 +125,5 @@ class PositionCard extends StatelessWidget {
             .toList(),
       ),
     );
-  }
-
-  String _formatarSenioridade(String value) {
-    const map = {
-      'estagio':      'Estágio',
-      'junior':       'Júnior',
-      'pleno':        'Pleno',
-      'senior':       'Sênior',
-      'especialista': 'Especialista',
-    };
-    return map[value] ?? value;
   }
 }

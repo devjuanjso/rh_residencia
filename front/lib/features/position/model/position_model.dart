@@ -29,7 +29,6 @@ class PositionChoices {
 class Position {
   final String id;
   final String titulo;
-  final String? descricao;
   final String? senioridade;
   final String? area;
   final List<String> habilidadesRequeridas;
@@ -40,7 +39,6 @@ class Position {
   Position({
     required this.id,
     required this.titulo,
-    this.descricao,
     this.senioridade,
     this.area,
     required this.habilidadesRequeridas,
@@ -53,7 +51,6 @@ class Position {
     return Position(
       id: json['id'] ?? '',
       titulo: json['titulo'] ?? '',
-      descricao: json['descricao'],
       senioridade: json['senioridade'],
       area: json['area'],
       habilidadesRequeridas:

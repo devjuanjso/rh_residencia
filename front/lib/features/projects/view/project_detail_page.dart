@@ -509,16 +509,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     fontWeight: FontWeight.bold,
                     color: Colors.black87),
               ),
-              if (position.descricao != null &&
-                  position.descricao!.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                Text(
-                  position.descricao!,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 10),
@@ -530,8 +520,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     onTap: () => _handleEditPosition(position),
                     child: const Padding(
                       padding: EdgeInsets.all(6),
-                      child: Icon(Icons.edit_outlined,
-                          color: _purple, size: 18),
+                      child: Icon(Icons.edit_outlined, color: _purple, size: 18),
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -540,8 +529,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     onTap: () => _showDeleteDialog(position),
                     child: const Padding(
                       padding: EdgeInsets.all(6),
-                      child: Icon(Icons.delete_outline,
-                          color: Colors.red, size: 18),
+                      child: Icon(Icons.delete_outline, color: Colors.red, size: 18),
                     ),
                   ),
                   const SizedBox(width: 8),

@@ -22,13 +22,6 @@ class PositionDetailSection extends StatelessWidget {
             _buildTitleRow(),
             const SizedBox(height: 16),
           ],
-          if (position.descricao != null && position.descricao!.isNotEmpty) ...[
-            _buildSection(
-              title: 'Descrição',
-              content: _buildTextContent(position.descricao!),
-            ),
-            const SizedBox(height: 20),
-          ],
           if (position.formacaoDesejada != null &&
               position.formacaoDesejada!.isNotEmpty) ...[
             _buildSection(
@@ -85,7 +78,7 @@ class PositionDetailSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        _formatarSenioridade(senioridade),
+        senioridade, // agora exibe direto, sem mapear
         style: const TextStyle(
           color: Colors.white,
           fontSize: 12,
@@ -127,16 +120,5 @@ class PositionDetailSection extends StatelessWidget {
               ))
           .toList(),
     );
-  }
-
-  String _formatarSenioridade(String value) {
-    const map = {
-      'estagio':      'Estágio',
-      'junior':       'Júnior',
-      'pleno':        'Pleno',
-      'senior':       'Sênior',
-      'especialista': 'Especialista',
-    };
-    return map[value] ?? value;
   }
 }

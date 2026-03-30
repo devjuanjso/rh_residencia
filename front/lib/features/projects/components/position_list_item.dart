@@ -49,7 +49,6 @@ class _PositionListItemState extends State<PositionListItem> {
     );
   }
 
-  // Linha principal: nome + badge senioridade + chevron
   Widget _buildHeader() {
     return InkWell(
       borderRadius: BorderRadius.circular(10),
@@ -81,12 +80,11 @@ class _PositionListItemState extends State<PositionListItem> {
     );
   }
 
-  // Badge de senioridade estilo da imagem (fundo escuro/cinza)
   Widget _buildSeniorityBadge(String senioridade) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF5B4FCF), // roxo igual ao design
+        color: const Color(0xFF5B4FCF),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -100,7 +98,6 @@ class _PositionListItemState extends State<PositionListItem> {
     );
   }
 
-  // Conteúdo expandido com detalhes da vaga
   Widget _buildExpandedContent() {
     return Container(
       decoration: BoxDecoration(
@@ -110,25 +107,11 @@ class _PositionListItemState extends State<PositionListItem> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildDescription(),
           _buildEducationInfo(),
           _buildRequiredSkills(),
           _buildCertifications(),
           if (widget.showActions) _buildActionsRow(),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDescription() {
-    if (widget.position.descricao == null || widget.position.descricao!.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Text(
-        widget.position.descricao!,
-        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
       ),
     );
   }
@@ -191,16 +174,14 @@ class _PositionListItemState extends State<PositionListItem> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: const TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w500)),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
           const SizedBox(height: 4),
           Wrap(
             spacing: 6,
             runSpacing: 4,
             children: items
                 .map((item) => Chip(
-                      label: Text(item,
-                          style: const TextStyle(fontSize: 12)),
+                      label: Text(item, style: const TextStyle(fontSize: 12)),
                       backgroundColor: chipColor,
                       visualDensity: VisualDensity.compact,
                     ))
