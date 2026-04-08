@@ -4,7 +4,7 @@ import '../../../core/components/loading_overlay.dart';
 import '../../../core/layout/empty_state.dart';
 import '../components/project_card.dart';
 import '../components/position_list_item.dart';
-import '../components/candidatos_modal.dart';
+import '../../recomendacao/view/candidatos_modal.dart';
 import '../../position/model/position_model.dart';
 import '../../position/view/position_form_page.dart';
 import '../../position/view/position_detail_page.dart';

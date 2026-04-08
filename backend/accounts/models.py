@@ -1,3 +1,4 @@
+# models.py
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -70,6 +71,10 @@ class User(AbstractUser):
 
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
-    
+
+    @property
+    def nome_completo(self):
+        return self.get_full_name() or self.username
+
     def __str__(self):
-        return f"{self.username} - {self.role}"
+        return f"{self.get_full_name() or self.username} - {self.role}"

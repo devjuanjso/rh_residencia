@@ -5,6 +5,7 @@ from candidaturas.models import Candidatura
 
 AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://ai-service:8001")
 
+
 def recomendar_por_vaga(vaga: Vaga) -> list[dict]:
     candidaturas = (
         Candidatura.objects
@@ -14,6 +15,8 @@ def recomendar_por_vaga(vaga: Vaga) -> list[dict]:
 
     if not candidaturas.exists():
         return []
+
+    candidatos_map = {str(c.id): c for c in candidaturas}
 
     payload = {
         "vaga": {
@@ -27,11 +30,11 @@ def recomendar_por_vaga(vaga: Vaga) -> list[dict]:
             {
                 "candidatura_id": str(c.id),
                 "usuario_id": str(c.usuario.id),
-                "nome": f"{c.usuario.first_name} {c.usuario.last_name}",
+                "nome": c.usuario.get_full_name() or c.usuario.username,
                 "habilidades": c.usuario.habilidades or [],
                 "certificacoes": c.usuario.certificacoes or [],
-                "formacao": getattr(c.usuario, "formacao", "") or "",
-                "resumo": getattr(c.usuario, "resumo", "") or "",
+                "formacao": c.usuario.formacao or "",
+                "bio": c.usuario.bio or "",
             }
             for c in candidaturas
         ],
@@ -43,4 +46,28 @@ def recomendar_por_vaga(vaga: Vaga) -> list[dict]:
         timeout=120,
     )
     response.raise_for_status()
-    return response.json()
+    resultados_ia = response.json()
+
+    enriquecidos = []
+    for item in resultados_ia:
+        candidatura = candidatos_map.get(item["candidatura_id"])
+        if not candidatura:
+            continue
+
+        u = candidatura.usuario
+        enriquecidos.append({
+            **item,
+            "nome": u.get_full_name() or u.username,
+            "email": u.email,
+            "cargo": u.cargo,
+            "senioridade": u.senioridade,
+            "area": u.area,
+            "habilidades": u.habilidades or [],
+            "certificacoes": u.certificacoes or [],
+            "formacao": u.formacao,
+            "linkedin": u.linkedin,
+            "foto": u.foto.url if u.foto else None,
+            "bio": u.bio,
+        })
+
+    return enriquecidos
