@@ -13,6 +13,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   final _formKey = GlobalKey<FormState>();
 
+  late TextEditingController firstNameController;
+  late TextEditingController lastNameController;
+  late TextEditingController emailController;
   late TextEditingController bioController;
   late TextEditingController linkedinController;
   late TextEditingController formacaoController;
@@ -29,6 +32,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final vm = context.read<ProfileViewModel>();
     final profile = vm.profile!;
 
+    firstNameController = TextEditingController(text: profile.firstName);
+    lastNameController = TextEditingController(text: profile.lastName);
+    emailController = TextEditingController(text: profile.email);
     bioController = TextEditingController(text: profile.bio);
     linkedinController = TextEditingController(text: profile.linkedin);
     formacaoController = TextEditingController(text: profile.formacao);
@@ -76,6 +82,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     _buildHabilidadesCard(vm),
                     const SizedBox(height: 16),
                     _buildFormacaoCard(vm),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -83,7 +90,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Avatar com nome somente leitura
+  // Avatar com nome completo somente leitura
   Widget _buildAvatarSection(ProfileViewModel vm) {
     final profile = vm.profile!;
     return Center(
@@ -99,7 +106,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
           const SizedBox(height: 12),
           Text(
-            profile.username,
+            profile.nomeCompleto, // exibe nome completo, fallback para username
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
           ),
         ],
@@ -107,7 +114,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Card com email readonly, bio, linkedin, formacao e dropdowns profissionais
+  // Card com todos os campos editáveis
   Widget _buildInfoCard(ProfileViewModel vm) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -115,17 +122,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(vm.profile!.email, style: const TextStyle(color: Colors.grey)),
-          ),
+          _buildTextField('Nome', firstNameController, hint: 'Seu nome'),
+          const SizedBox(height: 16),
+          _buildTextField('Sobrenome', lastNameController, hint: 'Seu sobrenome'),
+          const SizedBox(height: 16),
+          _buildTextField('Email', emailController, hint: 'seuemail@exemplo.com'),
           const SizedBox(height: 16),
           _buildTextField('Bio', bioController, maxLines: 3),
           const SizedBox(height: 16),
@@ -328,6 +329,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   // Salva perfil e volta para tela anterior
   Future<void> _salvar(ProfileViewModel vm) async {
     await vm.updateProfile(
+      firstName: firstNameController.text.trim(),
+      lastName: lastNameController.text.trim(),
+      email: emailController.text.trim(),
       cargo: selectedCargo ?? '',
       senioridade: selectedSenioridade ?? '',
       area: selectedArea ?? '',
@@ -350,6 +354,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   // Libera controllers ao destruir a tela
   @override
   void dispose() {
+    firstNameController.dispose();
+    lastNameController.dispose();
+    emailController.dispose();
     bioController.dispose();
     linkedinController.dispose();
     formacaoController.dispose();

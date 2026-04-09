@@ -1,6 +1,9 @@
 class ProfileModel {
   final String id;
   final String username;
+  final String firstName;
+  final String lastName;
+  final String nomeCompleto;
   final String email;
   final String role;
   final String? cargo;
@@ -16,6 +19,9 @@ class ProfileModel {
   ProfileModel({
     required this.id,
     required this.username,
+    required this.firstName,
+    required this.lastName,
+    required this.nomeCompleto,
     required this.email,
     required this.role,
     this.cargo,
@@ -33,6 +39,9 @@ class ProfileModel {
     return ProfileModel(
       id: json["id"],
       username: json["username"],
+      firstName: json["first_name"] ?? '',
+      lastName: json["last_name"] ?? '',
+      nomeCompleto: json["nome_completo"] ?? json["username"], // fallback para username
       email: json["email"],
       role: json["role"],
       cargo: json["cargo"],

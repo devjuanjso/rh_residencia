@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:front/features/matchs/matchs_view_page.dart';
+import 'package:front/features/profile/view/my_projects_page.dart';
 import 'package:front/features/profile/view/profile_page.dart';
 import 'package:front/features/profile/viewmodel/profile_viewmodel.dart';
 import 'package:front/features/projects/view/project_list_page.dart';
@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
   List<Widget> _buildScreens() {
     return const [
       ProjectListPage(),
-      MatchsViewPage(),
+      MyProjectsPage(),
       ProfilePage(),
     ];
   }

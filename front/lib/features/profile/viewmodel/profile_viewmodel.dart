@@ -91,6 +91,9 @@ class ProfileViewModel extends ChangeNotifier {
 
   // Envia atualização do perfil para a API
   Future<void> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String email,
     required String cargo,
     required String senioridade,
     required String area,
@@ -102,6 +105,9 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       await _service.updateProfile({
+        "first_name": firstName,
+        "last_name": lastName,
+        "email": email,
         "cargo": cargo,
         "senioridade": senioridade,
         "area": area,

@@ -5,7 +5,6 @@ import 'package:front/features/profile/view/edit_profile_page.dart';
 import 'package:front/features/profile/viewmodel/profile_viewmodel.dart';
 import 'package:front/features/auth/view/login_page.dart';
 import 'package:front/features/auth/viewmodel/auth_viewmodel.dart';
-import 'my_projects_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -125,14 +124,13 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(height: 16),
                       _buildFormacaoCard(profile),
                       const SizedBox(height: 24),
-                      _buildMeusProjetosButton(),
                     ],
                   ),
                 ),
     );
   }
 
-  // Avatar, nome e chips de cargo/senioridade/area
+  // Avatar, nome completo e chips de cargo/senioridade/area
   Widget _buildHeader(profile) {
     return Center(
       child: Column(
@@ -147,7 +145,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 12),
           Text(
-            profile.username,
+            profile.nomeCompleto, // exibe nome completo, fallback para username
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -286,20 +284,6 @@ class _ProfilePageState extends State<ProfilePage> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 13)),
-    );
-  }
-
-  // Botão de meus projetos
-  Widget _buildMeusProjetosButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const MyProjectsPage()),
-        ),
-        child: const Text('Meus Projetos'),
-      ),
     );
   }
 
