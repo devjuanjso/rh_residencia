@@ -2,6 +2,7 @@ class Recomendacao {
   final String candidaturaId;
   final String usuarioId;
   final double compatibilidade;
+  final String status;
   final String nome;
   final String email;
   final String? cargo;
@@ -18,6 +19,7 @@ class Recomendacao {
     required this.candidaturaId,
     required this.usuarioId,
     required this.compatibilidade,
+    required this.status,
     required this.nome,
     required this.email,
     this.cargo,
@@ -31,11 +33,32 @@ class Recomendacao {
     this.bio,
   });
 
+  Recomendacao copyWith({String? status}) {
+    return Recomendacao(
+      candidaturaId: candidaturaId,
+      usuarioId: usuarioId,
+      compatibilidade: compatibilidade,
+      status: status ?? this.status,
+      nome: nome,
+      email: email,
+      cargo: cargo,
+      senioridade: senioridade,
+      area: area,
+      habilidades: habilidades,
+      certificacoes: certificacoes,
+      formacao: formacao,
+      linkedin: linkedin,
+      foto: foto,
+      bio: bio,
+    );
+  }
+
   factory Recomendacao.fromJson(Map<String, dynamic> json) {
     return Recomendacao(
       candidaturaId: json['candidatura_id'] as String,
       usuarioId: json['usuario_id'] as String,
       compatibilidade: (json['compatibilidade'] as num).toDouble(),
+      status: json['status'] as String? ?? 'pendente',
       nome: json['nome'] as String? ?? 'Sem nome',
       email: json['email'] as String? ?? '',
       cargo: json['cargo'] as String?,

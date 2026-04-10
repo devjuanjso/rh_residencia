@@ -102,7 +102,7 @@ class _HomePageState extends State<HomePage> {
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(Icons.work),
-        title: 'Matchs',
+        title: 'Projetos',
         activeColorPrimary: Colors.blue,
         inactiveColorPrimary: Colors.grey,
       ),

@@ -6,10 +6,9 @@ class CandidaturaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Candidatura
         fields = "__all__"
-        read_only_fields = ["usuario"]
+        read_only_fields = ["usuario", "status"]
 
     def validate(self, attrs):
-
         request = self.context.get("request")
         usuario = request.user
         vaga = attrs.get("vaga")

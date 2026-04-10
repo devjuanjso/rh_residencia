@@ -4,6 +4,7 @@ class RecomendacaoCandidaturaSerializer(serializers.Serializer):
     candidatura_id = serializers.UUIDField()
     usuario_id = serializers.UUIDField()
     compatibilidade = serializers.FloatField()
+    status          = serializers.CharField()
     # dados do usuário já embutidos
     nome = serializers.CharField()
     email = serializers.EmailField()

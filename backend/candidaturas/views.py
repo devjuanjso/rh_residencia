@@ -1,7 +1,8 @@
-from rest_framework import generics, viewsets
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
 from .models import Candidatura
 from .serializers import CandidaturaSerializer
 
@@ -19,51 +20,35 @@ class CandidaturaViewSet(viewsets.ModelViewSet):
         vagas = Candidatura.objects.filter(
             usuario=request.user
         ).values_list("vaga", flat=True)
-
         return Response([str(v) for v in vagas])
 
+    @action(detail=True, methods=["patch"], url_path="decidir")
+    def decidir(self, request, pk=None):
+        candidatura = self.get_object()
+        decisao = request.data.get("status")
 
-class CandidaturaListCreateView(generics.ListCreateAPIView):
-    queryset = Candidatura.objects.all()
-    serializer_class = CandidaturaSerializer
-    permission_classes = [IsAuthenticated]
+        if decisao not in ("aceito", "rejeitado"):
+            return Response(
+                {"detail": "Status inválido. Use 'aceito' ou 'rejeitado'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    def perform_create(self, serializer):
-        serializer.save(usuario=self.request.user)
+        if candidatura.vaga.projeto.criado_por != request.user:
+            return Response(
+                {"detail": "Sem permissão."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
+        if candidatura.status != "pendente":
+            return Response(
+                {"detail": f"Candidatura já foi '{candidatura.status}'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-class CandidaturaListView(generics.ListAPIView):
-    queryset = Candidatura.objects.all()
-    serializer_class = CandidaturaSerializer
-    permission_classes = [IsAuthenticated]
+        candidatura.status = decisao
+        candidatura.save(update_fields=["status"])
 
-
-class CandidaturaRetrieveView(generics.RetrieveAPIView):
-    queryset = Candidatura.objects.all()
-    serializer_class = CandidaturaSerializer
-    permission_classes = [IsAuthenticated]
-
-
-class CandidaturaUpdateView(generics.UpdateAPIView):
-    queryset = Candidatura.objects.all()
-    serializer_class = CandidaturaSerializer
-    permission_classes = [IsAuthenticated]
-
-
-class CandidaturaDeleteView(generics.DestroyAPIView):
-    queryset = Candidatura.objects.all()
-    serializer_class = CandidaturaSerializer
-    permission_classes = [IsAuthenticated]
-
-
-class CandidaturaDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Candidatura.objects.all()
-    serializer_class = CandidaturaSerializer
-    permission_classes = [IsAuthenticated]
-
-
-class CandidaturaPartialUpdateView(generics.UpdateAPIView):
-    queryset = Candidatura.objects.all()
-    serializer_class = CandidaturaSerializer
-    permission_classes = [IsAuthenticated]
-    http_method_names = ["patch"]
+        return Response({
+            "candidatura_id": str(candidatura.id),
+            "status": candidatura.status,
+        })

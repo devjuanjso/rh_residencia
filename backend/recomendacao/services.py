@@ -57,6 +57,7 @@ def recomendar_por_vaga(vaga: Vaga) -> list[dict]:
         u = candidatura.usuario
         enriquecidos.append({
             **item,
+            "status": candidatura.status,
             "nome": u.get_full_name() or u.username,
             "email": u.email,
             "cargo": u.cargo,

@@ -1,17 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:front/features/candidatura/controller/candidatura_controller.dart';
 import 'package:front/features/recomendacao/controller/recomendacao_controller.dart';
 import 'package:front/features/recomendacao/model/recomendacao_model.dart';
 
 class RecomendacaoViewModel extends ChangeNotifier {
   List<Recomendacao> recomendacoes = [];
   bool isLoading = false;
+  bool isProcessando = false;
   String errorMessage = '';
+  String? decisaoFeita;      // 'aceito' | 'rejeitado' | null
+  String? candidatoDecidido; // nome do candidato para exibir no overlay
 
-  // carrega e ordena candidatos da vaga por compatibilidade
+  final _candidaturaController = CandidaturaController();
+
+  // retorna true se o candidato ja teve decisao tomada
+  bool jaDecidido(String status) => status == 'aceito' || status == 'rejeitado';
+
+  // cor do badge de compatibilidade por faixa de valor
+  Color corCompatibilidade(double valor) {
+    if (valor >= 0.7) return const Color(0xFF16A34A);
+    if (valor >= 0.4) return const Color(0xFFD97706);
+    return const Color(0xFFDC2626);
+  }
+
+  // cor e icone do badge de status final do candidato
+  ({Color cor, Color bg, String label, IconData icon}) dadosBadgeStatus(String status) {
+    final aceito = status == 'aceito';
+    final cor = aceito ? const Color(0xFF16A34A) : Colors.red;
+    return (
+      cor: cor,
+      bg: cor.withOpacity(0.10),
+      label: aceito ? 'Aceito' : 'Rejeitado',
+      icon: aceito ? Icons.check_circle_outline_rounded : Icons.cancel_outlined,
+    );
+  }
+
+  // cor e icone do overlay animado de resultado
+  ({Color cor, Color bg, IconData icon, String titulo}) dadosOverlay(String decisao) {
+    final aceito = decisao == 'aceito';
+    final cor = aceito ? const Color(0xFF16A34A) : Colors.red;
+    return (
+      cor: cor,
+      bg: cor.withOpacity(0.12),
+      icon: aceito ? Icons.check_circle_outline_rounded : Icons.cancel_outlined,
+      titulo: aceito ? 'Candidato aceito!' : 'Candidato rejeitado',
+    );
+  }
+
+  // busca, ordena por compatibilidade e armazena candidatos da vaga
   Future<void> carregar(String vagaId) async {
     isLoading = true;
     errorMessage = '';
     recomendacoes = [];
+    decisaoFeita = null;
+    candidatoDecidido = null;
     notifyListeners();
 
     try {
@@ -24,5 +66,44 @@ class RecomendacaoViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  // envia decisao, atualiza status local e prepara dados do overlay
+  Future<bool> decidir(String candidaturaId, String decisao, String nomeCandidato) async {
+    isProcessando = true;
+    notifyListeners();
+
+    try {
+      final sucesso = await _candidaturaController.decidir(
+        candidaturaId: candidaturaId,
+        decisao: decisao,
+      );
+
+      if (sucesso) {
+        final idx = recomendacoes.indexWhere((r) => r.candidaturaId == candidaturaId);
+        if (idx != -1) {
+          recomendacoes[idx] = recomendacoes[idx].copyWith(status: decisao);
+        }
+        decisaoFeita = decisao;
+        candidatoDecidido = nomeCandidato;
+        notifyListeners();
+      }
+
+      return sucesso;
+    } catch (e) {
+      errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    } finally {
+      isProcessando = false;
+      notifyListeners();
+    }
+  }
+
+  // limpa o estado de decisao apos fechar o overlay
+  void limparDecisao() {
+    decisaoFeita = null;
+    candidatoDecidido = null;
+    notifyListeners();
   }
 }
