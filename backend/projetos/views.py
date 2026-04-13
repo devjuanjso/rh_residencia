@@ -22,7 +22,7 @@ class ProjetoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="publicados")
     def publicados(self, request):
-        projetos = Projeto.objects.filter(rascunho=False)
+        projetos = Projeto.objects.filter(rascunho=False).exclude(criado_por=request.user)
         serializer = self.get_serializer(projetos, many=True)
         return Response(serializer.data)
 

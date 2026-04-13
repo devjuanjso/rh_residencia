@@ -123,8 +123,8 @@ class ProjectListViewModel extends ChangeNotifier {
 
   Future<void> carregarMinhasCandidaturas() async {
     try {
-      final vagas = await _candidaturaController.minhasCandidaturas();
-      vagasCandidatadas = vagas.toSet();
+      final candidaturas = await _candidaturaController.minhasCandidaturasCompletas();
+      vagasCandidatadas = candidaturas.map((c) => c.vagaId).toSet();
       notifyListeners();
     } catch (e) {
       print("Erro ao carregar candidaturas: $e");
