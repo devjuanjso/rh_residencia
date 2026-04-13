@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:front/features/candidatura/model/candidatura_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:front/core/services/http_service.dart';
 import 'package:front/core/services/secure_storage_service.dart';
@@ -73,5 +74,21 @@ class CandidaturaController {
     }
 
     throw Exception("Erro ao processar decisão");
+  }
+
+  Future<List<Candidatura>> minhasCandidaturasCompletas() async {
+    final token = await _storage.getToken();
+
+    final response = await http.get(
+      Uri.parse('${Config.baseUrl}/candidaturas/minhas/'),
+      headers: {"Authorization": "Bearer $token"},
+    );
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => Candidatura.fromJson(e)).toList();
+    }
+
+    return [];
   }
 }

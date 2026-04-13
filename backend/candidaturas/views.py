@@ -17,10 +17,11 @@ class CandidaturaViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="minhas")
     def minhas_candidaturas(self, request):
-        vagas = Candidatura.objects.filter(
+        candidaturas = Candidatura.objects.filter(
             usuario=request.user
-        ).values_list("vaga", flat=True)
-        return Response([str(v) for v in vagas])
+        ).select_related("vaga", "vaga__projeto")
+        serializer = CandidaturaSerializer(candidaturas, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=["patch"], url_path="decidir")
     def decidir(self, request, pk=None):
