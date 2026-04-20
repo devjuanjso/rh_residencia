@@ -134,7 +134,7 @@ class ProjectController {
     File? imagem,
     String? tipo,
     DateTime? dataInicio,
-    bool? rascunho, // ← adicionado
+    String? status,
   }) async {
     try {
       final uri = Uri.parse('${Config.baseUrl}/projetos/$projetoId/');
@@ -150,9 +150,7 @@ class ProjectController {
         request.fields['data_inicio'] =
             dataInicio.toIso8601String().split('T').first;
       }
-      if (rascunho != null) {
-        request.fields['rascunho'] = rascunho.toString(); // "true" ou "false"
-      }
+      if (status != null) request.fields['status'] = status;
 
       if (imagem != null) {
         request.files.add(
@@ -166,6 +164,39 @@ class ProjectController {
     } catch (e) {
       print('Erro ao atualizar projeto parcialmente: $e');
       return false;
+    }
+  }
+
+  // Atualiza apenas o status do projeto. Retorna null em caso de sucesso
+  // ou uma mensagem de erro em caso de falha.
+  static Future<String?> atualizarStatus({
+    required String projetoId,
+    required String status,
+  }) async {
+    try {
+      final uri = Uri.parse('${Config.baseUrl}/projetos/$projetoId/');
+      final token = await _storage.getToken();
+
+      final request = http.MultipartRequest('PATCH', uri);
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['status'] = status;
+
+      final response = await request.send();
+      final body = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) return null;
+
+      try {
+        final data = jsonDecode(body);
+        if (data is Map && data['status'] != null) {
+          final msg = data['status'];
+          return msg is List ? msg.first.toString() : msg.toString();
+        }
+      } catch (_) {}
+
+      return 'Erro ao atualizar status do projeto';
+    } catch (e) {
+      return 'Erro: $e';
     }
   }
 

@@ -23,7 +23,7 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
   int _currentPage = 1;
   final int _itemsPerPage = 5;
 
-  final List<String> _filters = ['Todos', 'Publicado', 'Rascunho', 'Candidaturas'];
+  final List<String> _filters = ['Todos', 'Publicado', 'Rascunho', 'Encerrado', 'Candidaturas'];
 
   static const Color _purple = Color(0xFF6B21A8);
 
@@ -43,8 +43,9 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
           p.descricao.toLowerCase().contains(_searchQuery.toLowerCase());
 
       final matchesFilter = _selectedFilter == 'Todos' ||
-          (_selectedFilter == 'Rascunho' && p.rascunho == true) ||
-          (_selectedFilter == 'Publicado' && p.rascunho == false);
+          (_selectedFilter == 'Rascunho' && p.isRascunho) ||
+          (_selectedFilter == 'Publicado' && p.isPublicado) ||
+          (_selectedFilter == 'Encerrado' && p.isEncerrado);
 
       return matchesSearch && matchesFilter;
     }).toList();
@@ -378,7 +379,7 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      _buildRascunhoBadge(projeto.rascunho),
+                      _buildStatusBadge(projeto.status),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -424,22 +425,38 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
         child: const Center(child: Icon(Icons.image_outlined, color: Colors.white30, size: 48)),
       );
 
-  // Badge colorido indicando se o projeto é rascunho ou publicado.
-  Widget _buildRascunhoBadge(bool rascunho) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: rascunho ? Colors.orange.shade100 : _purple,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          rascunho ? 'Rascunho' : 'Publicado',
-          style: TextStyle(
-            color: rascunho ? Colors.orange.shade800 : Colors.white,
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      );
+  // Badge colorido indicando o status do projeto.
+  Widget _buildStatusBadge(String status) {
+    final Color bg;
+    final Color fg;
+    final String label;
+
+    if (status == 'publicado') {
+      bg = _purple;
+      fg = Colors.white;
+      label = 'Publicado';
+    } else if (status == 'encerrado') {
+      bg = Colors.grey.shade300;
+      fg = Colors.grey.shade800;
+      label = 'Encerrado';
+    } else {
+      bg = Colors.orange.shade100;
+      fg = Colors.orange.shade800;
+      label = 'Rascunho';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
 
   // Linha de informação com ícone à esquerda e texto truncado.
   Widget _buildInfoRow(IconData icon, String text) => Row(

@@ -29,8 +29,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   bool _isTogglingStatus = false;
   String _errorMessage = '';
 
-  // Espelha o status de rascunho do projeto localmente para refletir mudancas sem recarregar
-  late bool _isRascunho;
+  // Espelha o status do projeto localmente para refletir mudancas sem recarregar
+  late String _status;
 
   static const Color _purple = Color(0xFF6B21A8);
   static const Color _purpleLight = Color(0xFFF3E8FF);
@@ -38,7 +38,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   @override
   void initState() {
     super.initState();
-    _isRascunho = widget.project.rascunho;
+    _status = widget.project.status;
     _loadPositions();
   }
 
@@ -65,46 +65,67 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
   }
 
-  // Alterna o status do projeto entre publicado e rascunho
-  Future<void> _handleToggleStatus() async {
-    final novoStatus = !_isRascunho;
+  // Atualiza o status do projeto para o valor fornecido
+  Future<void> _handleSetStatus(String novoStatus) async {
     setState(() => _isTogglingStatus = true);
 
     try {
-      final sucesso = await ProjectController.atualizarProjetoParcial(
+      final erro = await ProjectController.atualizarStatus(
         projetoId: widget.project.id,
-        rascunho: novoStatus,
+        status: novoStatus,
       );
 
-      if (sucesso && mounted) {
-        setState(() => _isRascunho = novoStatus);
+      if (!mounted) return;
+
+      if (erro == null) {
+        setState(() => _status = novoStatus);
+        final mensagem = novoStatus == 'publicado'
+            ? 'Projeto publicado com sucesso!'
+            : novoStatus == 'encerrado'
+                ? 'Projeto encerrado'
+                : 'Projeto movido para rascunho';
+        final cor = novoStatus == 'publicado'
+            ? Colors.green
+            : novoStatus == 'encerrado'
+                ? Colors.grey[700]!
+                : Colors.orange;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              novoStatus
-                  ? 'Projeto movido para rascunho'
-                  : 'Projeto publicado com sucesso!',
-            ),
-            backgroundColor: novoStatus ? Colors.orange : Colors.green,
-          ),
+          SnackBar(content: Text(mensagem), backgroundColor: cor),
         );
-      } else if (mounted) {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erro ao atualizar status do projeto'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(erro), backgroundColor: Colors.red),
         );
       }
     } finally {
       if (mounted) setState(() => _isTogglingStatus = false);
     }
+  }
+
+  // Confirma acao de encerrar o projeto
+  void _confirmEncerrar() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Encerrar projeto'),
+        content: const Text(
+            'Tem certeza que deseja encerrar este projeto? Ele nao ficara mais visivel para candidatos.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _handleSetStatus('encerrado');
+            },
+            child: const Text('Encerrar',
+                style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   // Exibe dialogo de confirmacao antes de excluir a vaga
@@ -259,7 +280,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                 ),
               ),
               const SizedBox(width: 10),
-              _buildRascunhoBadge(_isRascunho),
+              _buildStatusBadge(_status),
             ],
           ),
           const SizedBox(height: 8),
@@ -287,95 +308,191 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Card com switch para publicar ou mover o projeto para rascunho
+  // Painel de status com acoes conforme o estado atual do projeto
   Widget _buildStatusToggle() {
-    final isPublicado = !_isRascunho;
+    final Color bgColor;
+    final Color borderColor;
+    final Color iconColor;
+    final IconData icon;
+    final String title;
+    final String subtitle;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: isPublicado ? const Color(0xFFF3E8FF) : Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isPublicado
-              ? const Color(0xFFD8B4FE)
-              : Colors.orange.shade200,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isPublicado ? Icons.public : Icons.public_off_outlined,
-            size: 20,
-            color: isPublicado ? _purple : Colors.orange.shade700,
+    if (_status == 'publicado') {
+      bgColor = const Color(0xFFF3E8FF);
+      borderColor = const Color(0xFFD8B4FE);
+      iconColor = _purple;
+      icon = Icons.public;
+      title = 'Projeto publicado';
+      subtitle = 'Visivel para candidatos';
+    } else if (_status == 'encerrado') {
+      bgColor = Colors.grey.shade100;
+      borderColor = Colors.grey.shade300;
+      iconColor = Colors.grey.shade600;
+      icon = Icons.lock_outline;
+      title = 'Projeto encerrado';
+      subtitle = 'Nao aceita mais candidatos';
+    } else {
+      bgColor = Colors.orange.shade50;
+      borderColor = Colors.orange.shade200;
+      iconColor = Colors.orange.shade700;
+      icon = Icons.public_off_outlined;
+      title = 'Projeto em rascunho';
+      subtitle = 'Nao visivel para candidatos';
+    }
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isPublicado ? 'Projeto publicado' : 'Projeto em rascunho',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isPublicado ? _purple : Colors.orange.shade800,
-                  ),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: iconColor),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: iconColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: 11, color: iconColor.withOpacity(0.75)),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  isPublicado
-                      ? 'Visivel para candidatos'
-                      : 'Nao visivel para candidatos',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isPublicado
-                        ? Colors.purple.shade400
-                        : Colors.orange.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Mostra loading enquanto a requisicao de toggle esta em andamento
-          _isTogglingStatus
-              ? SizedBox(
+              ),
+              const SizedBox(width: 8),
+              if (_isTogglingStatus)
+                SizedBox(
                   width: 24,
                   height: 24,
                   child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: isPublicado ? _purple : Colors.orange.shade700,
-                  ),
-                )
-              : Switch(
-                  value: isPublicado,
-                  onChanged: (_) => _handleToggleStatus(),
-                  activeColor: _purple,
-                  activeTrackColor: const Color(0xFFD8B4FE),
-                  inactiveThumbColor: Colors.orange.shade400,
-                  inactiveTrackColor: Colors.orange.shade100,
+                      strokeWidth: 2, color: iconColor),
                 ),
+            ],
+          ),
+        ),
+        if (!_isTogglingStatus) ...[
+          const SizedBox(height: 10),
+          _buildStatusActions(),
         ],
+      ],
+    );
+  }
+
+  // Botoes de acao conforme o status atual
+  Widget _buildStatusActions() {
+    if (_status == 'rascunho') {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () => _handleSetStatus('publicado'),
+          icon: const Icon(Icons.public, size: 16),
+          label: const Text('Publicar projeto'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _purple,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
+            elevation: 0,
+          ),
+        ),
+      );
+    }
+
+    if (_status == 'publicado') {
+      return Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => _handleSetStatus('rascunho'),
+              icon: const Icon(Icons.public_off_outlined, size: 16),
+              label: const Text('Mover para rascunho'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.orange.shade800,
+                side: BorderSide(color: Colors.orange.shade300),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: _confirmEncerrar,
+              icon: const Icon(Icons.lock_outline, size: 16),
+              label: const Text('Encerrar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade600,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // encerrado
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _handleSetStatus('rascunho'),
+        icon: const Icon(Icons.refresh, size: 16),
+        label: const Text('Reativar como rascunho'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.grey.shade700,
+          side: BorderSide(color: Colors.grey.shade400),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10)),
+        ),
       ),
     );
   }
 
-  // Badge visual que indica se o projeto esta publicado ou em rascunho
-  Widget _buildRascunhoBadge(bool rascunho) {
+  // Badge visual indicando o status do projeto
+  Widget _buildStatusBadge(String status) {
+    final Color bg;
+    final Color fg;
+    final String label;
+
+    if (status == 'publicado') {
+      bg = _purple;
+      fg = Colors.white;
+      label = 'Publicado';
+    } else if (status == 'encerrado') {
+      bg = Colors.grey.shade300;
+      fg = Colors.grey.shade800;
+      label = 'Encerrado';
+    } else {
+      bg = Colors.orange.shade100;
+      fg = Colors.orange.shade800;
+      label = 'Rascunho';
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: rascunho ? Colors.orange.shade100 : _purple,
+        color: bg,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        rascunho ? 'Rascunho' : 'Publicado',
-        style: TextStyle(
-          color: rascunho ? Colors.orange.shade800 : Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
+        label,
+        style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
   }

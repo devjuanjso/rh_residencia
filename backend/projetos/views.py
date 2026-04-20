@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, serializers as drf_serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -18,11 +18,22 @@ class ProjetoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(criado_por=self.request.user)
+        serializer.save(criado_por=self.request.user, status=Projeto.StatusProjeto.RASCUNHO)
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        new_status = serializer.validated_data.get("status", instance.status)
+        if new_status == Projeto.StatusProjeto.PUBLICADO and instance.status != Projeto.StatusProjeto.PUBLICADO:
+            tem_vaga_ativa = instance.vagas.filter(encerrada=False).exists()
+            if not tem_vaga_ativa:
+                raise drf_serializers.ValidationError(
+                    {"status": "Para publicar o projeto, é necessário ter pelo menos uma vaga ativa."}
+                )
+        serializer.save()
 
     @action(detail=False, methods=["get"], url_path="publicados")
     def publicados(self, request):
-        projetos = Projeto.objects.filter(rascunho=False).exclude(criado_por=request.user)
+        projetos = Projeto.objects.filter(status=Projeto.StatusProjeto.PUBLICADO).exclude(criado_por=request.user)
         serializer = self.get_serializer(projetos, many=True)
         return Response(serializer.data)
 

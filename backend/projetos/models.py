@@ -32,7 +32,17 @@ class Projeto(models.Model):
         related_name="projetos_criados",
     )
 
-    rascunho = models.BooleanField(default=True)
+    class StatusProjeto(models.TextChoices):
+        RASCUNHO = "rascunho", "Rascunho"
+        PUBLICADO = "publicado", "Publicado"
+        ENCERRADO = "encerrado", "Encerrado"
+
+    status = models.CharField(
+        max_length=20,
+        choices=StatusProjeto.choices,
+        default=StatusProjeto.RASCUNHO,
+    )
+
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 

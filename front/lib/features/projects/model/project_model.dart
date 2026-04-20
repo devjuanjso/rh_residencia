@@ -4,7 +4,7 @@ class Project {
   final String descricao;
   final String? imagem;
   final String? tipo;
-  final bool rascunho;
+  final String status; // 'rascunho', 'publicado', 'encerrado'
   final DateTime? dataInicio;
   final String? criadoPorNome;
 
@@ -14,11 +14,14 @@ class Project {
     required this.descricao,
     this.imagem,
     this.tipo,
-    this.rascunho = true,
+    this.status = 'rascunho',
     this.dataInicio,
     this.criadoPorNome,
-    
   });
+
+  bool get isRascunho => status == 'rascunho';
+  bool get isPublicado => status == 'publicado';
+  bool get isEncerrado => status == 'encerrado';
 
   factory Project.fromJson(Map<String, dynamic> json) {
     return Project(
@@ -27,7 +30,7 @@ class Project {
       descricao: json['descricao'],
       imagem: json['imagem'],
       tipo: json['tipo'],
-      rascunho: json['rascunho'] ?? true,
+      status: json['status'] ?? 'rascunho',
       dataInicio: json['data_inicio'] != null
           ? DateTime.tryParse(json['data_inicio'])
           : null,

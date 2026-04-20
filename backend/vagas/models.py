@@ -44,6 +44,8 @@ class Vaga(models.Model):
         default=Senioridade.PLENO,
     )
 
+    encerrada = models.BooleanField(default=False)
+
     habilidades_requeridas = models.JSONField(default=list)
     certificacoes_requeridas = models.JSONField(default=list)
     formacao_desejada = models.CharField(max_length=200, blank=True, null=True)
