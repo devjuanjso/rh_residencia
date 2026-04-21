@@ -37,6 +37,30 @@ class AiController {
     }
   }
 
+  // Envia descrição textual ao backend e retorna sugestão de projeto pela IA.
+  static Future<({Map<String, dynamic>? dados, String? erro})> sugerirProjetoPorTexto(
+    String descricao,
+  ) async {
+    try {
+      final token = await _storage.getToken();
+      final uri = Uri.parse('${Config.baseUrl}/projetos/sugerir-por-texto/');
+      final response = await http.post(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'descricao': descricao}),
+      );
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 200) return (dados: data, erro: null);
+      final msg = data['erro'] ?? data['detail'] ?? 'Erro desconhecido';
+      return (dados: null, erro: msg.toString());
+    } catch (e) {
+      return (dados: null, erro: 'Erro ao enviar descrição: $e');
+    }
+  }
+
   // Envia currículo PDF ao backend e retorna dados extraídos pela IA.
   static Future<({Map<String, dynamic>? dados, String? erro})> analisarCurriculo(
     File arquivo,

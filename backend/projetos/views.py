@@ -66,6 +66,27 @@ class ProjetoViewSet(viewsets.ModelViewSet):
         except http_requests.exceptions.Timeout:
             return Response({"erro": "Timeout do serviço de IA"}, status=status.HTTP_504_GATEWAY_TIMEOUT)
 
+    @action(detail=False, methods=["post"], url_path="sugerir-por-texto")
+    def sugerir_por_texto(self, request):
+        """
+        Recebe uma descrição textual e retorna sugestão de projeto gerada pela IA.
+        """
+        descricao = request.data.get("descricao", "").strip()
+        if not descricao:
+            return Response({"erro": "Descrição obrigatória"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ai_response = http_requests.post(
+                "http://ai-service:8001/projeto/sugerir",
+                json={"descricao": descricao},
+                timeout=300,
+            )
+            return Response(ai_response.json(), status=ai_response.status_code)
+        except http_requests.exceptions.ConnectionError:
+            return Response({"erro": "Serviço de IA indisponível"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except http_requests.exceptions.Timeout:
+            return Response({"erro": "Timeout do serviço de IA"}, status=status.HTTP_504_GATEWAY_TIMEOUT)
+
     @action(detail=False, methods=["get"], url_path="choices", permission_classes=[AllowAny])
     def choices(self, request):
         return Response({

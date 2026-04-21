@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -21,10 +22,34 @@ class ProjectFormPage extends StatefulWidget {
   State<ProjectFormPage> createState() => _ProjectsFormPageState();
 }
 
-class _ProjectsFormPageState extends State<ProjectFormPage> {
+class _ProjectsFormPageState extends State<ProjectFormPage>
+    with SingleTickerProviderStateMixin {
+  final _textoIAController = TextEditingController();
+  String _modoIA = 'texto';
+
+  late final AnimationController _iaAnimController;
+  late final Animation<double> _rotationAnim;
+  late final Animation<double> _pulseAnim;
+
   @override
   void initState() {
     super.initState();
+    _iaAnimController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat();
+    _rotationAnim = Tween<double>(begin: 0, end: 2 * math.pi)
+        .animate(CurvedAnimation(parent: _iaAnimController, curve: Curves.linear));
+    _pulseAnim = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(
+        parent: CurvedAnimation(
+          parent: _iaAnimController,
+          curve: Curves.easeInOut,
+        ),
+        curve: Curves.easeInOut,
+      ),
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final vm = context.read<ProjectFormViewModel>();
       vm.carregarChoices();
@@ -37,16 +62,28 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
   }
 
   @override
+  void dispose() {
+    _textoIAController.dispose();
+    _iaAnimController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: _buildAppBar(),
       body: Consumer<ProjectFormViewModel>(
         builder: (context, vm, _) {
-          return LoadingOverlay(
-            isLoading: widget.projetoId != null && vm.loading && !vm.dadosCarregados,
-            message: 'Carregando projeto...',
-            child: _buildContent(context, vm),
+          return Stack(
+            children: [
+              LoadingOverlay(
+                isLoading: widget.projetoId != null && vm.loading && !vm.dadosCarregados,
+                message: 'Carregando projeto...',
+                child: _buildContent(context, vm),
+              ),
+              if (vm.loadingIA) _buildIaLoadingOverlay(),
+            ],
           );
         },
       ),
@@ -139,15 +176,33 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     }
   }
 
+  Future<void> _handleGerarComTexto(ProjectFormViewModel vm) async {
+    final texto = _textoIAController.text.trim();
+    if (texto.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Digite uma descrição do projeto'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    await vm.importarDeTexto(texto);
+    if (vm.erroIA != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(vm.erroIA!), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   Widget _buildFormContent(BuildContext context, ProjectFormViewModel vm) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Banner de importação por PDF (somente ao criar)
           if (widget.projetoId == null) ...[
-            _buildPdfImportBanner(vm),
+            _buildIaBanner(vm),
             const SizedBox(height: 20),
           ],
           _buildField(
@@ -173,7 +228,6 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
           _buildDataInicioField(context, vm),
           const SizedBox(height: 18),
           _buildImagePicker(vm),
-          // Vagas sugeridas pela IA
           if (vm.vagasSugeridas.isNotEmpty) ...[
             const SizedBox(height: 20),
             _buildVagasSugeridas(vm),
@@ -188,72 +242,228 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  Widget _buildPdfImportBanner(ProjectFormViewModel vm) {
-    if (vm.loadingIA) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEEEDFE),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFAFA9EC)),
-        ),
-        child: const Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2, color: _purple),
-            ),
-            SizedBox(width: 12),
-            Text('Analisando documento com IA...',
-                style: TextStyle(fontSize: 13, color: _purpleDark)),
-          ],
-        ),
-      );
-    }
-
+  Widget _buildIaBanner(ProjectFormViewModel vm) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEEDFE),
+        color: _purpleLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFAFA9EC)),
+        border: Border.all(color: _purpleMid),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.auto_awesome, color: _purple, size: 20),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const Row(
+            children: [
+              Icon(Icons.auto_awesome, color: _purple, size: 16),
+              SizedBox(width: 6),
+              Text(
+                'Criar com IA',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _purpleDark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Segmented control
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(color: const Color(0xFFDDDDDD), width: 0.5),
+            ),
+            child: Row(
               children: [
-                Text('Criar com IA',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: _purpleDark)),
-                SizedBox(height: 2),
-                Text('Importe um PDF e a IA preenche o projeto e sugere vagas',
-                    style: TextStyle(fontSize: 11, color: _purpleDark)),
+                _buildModoButton('texto', Icons.edit_outlined, 'Descrever'),
+                _buildModoButton('pdf', Icons.upload_file_outlined, 'Importar PDF'),
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          TextButton.icon(
-            onPressed: () => _handleImportarPdf(vm),
-            icon: const Icon(Icons.upload_file, size: 16),
-            label: const Text('Importar PDF'),
-            style: TextButton.styleFrom(
-              foregroundColor: _purple,
-              backgroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
+          const SizedBox(height: 12),
+          if (_modoIA == 'texto') ...[
+            TextField(
+              controller: _textoIAController,
+              maxLines: 3,
+              style: const TextStyle(fontSize: 13, color: Colors.black87),
+              decoration: InputDecoration(
+                hintText:
+                    'Ex: Criar um app mobile com 2 vagas Flutter e 1 backend Django...',
+                hintStyle: const TextStyle(color: Color(0xFFBBBBBB), fontSize: 13),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  side: const BorderSide(color: _purple)),
+                  borderSide: const BorderSide(color: _purpleMid, width: 0.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: _purple, width: 1),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
             ),
-          ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _handleGerarComTexto(vm),
+                icon: const Icon(Icons.auto_awesome, size: 15),
+                label: const Text(
+                  'Gerar com IA',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _purple,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+          ] else ...[
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Importe um PDF de proposta ou briefing do projeto',
+                    style: TextStyle(fontSize: 11, color: _purpleDark),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                TextButton.icon(
+                  onPressed: () => _handleImportarPdf(vm),
+                  icon: const Icon(Icons.upload_file, size: 16),
+                  label: const Text('Importar PDF'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: _purple,
+                    backgroundColor: Colors.white,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(color: _purple),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildModoButton(String modo, IconData icon, String label) {
+    final selected = _modoIA == modo;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _modoIA = modo),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 7),
+          decoration: BoxDecoration(
+            color: selected ? _purple : Colors.transparent,
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14,
+                  color: selected ? Colors.white : _purpleDark),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: selected ? Colors.white : _purpleDark,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIaLoadingOverlay() {
+    return AnimatedBuilder(
+      animation: _iaAnimController,
+      builder: (context, _) {
+        return Container(
+          color: Colors.black.withValues(alpha: 0.55),
+          child: Center(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 40),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: _purple.withValues(alpha: 0.25),
+                    blurRadius: 32,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Transform.scale(
+                    scale: _pulseAnim.value,
+                    child: Transform.rotate(
+                      angle: _rotationAnim.value,
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: _purpleLight,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.auto_awesome,
+                            color: _purple, size: 32),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Gerando projeto com IA',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Analisando e criando sugestões de vagas...',
+                    style: TextStyle(fontSize: 13, color: Colors.black54),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: const LinearProgressIndicator(
+                      minHeight: 4,
+                      backgroundColor: _purpleLight,
+                      color: _purple,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -477,7 +687,6 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
-  // Apenas o botão de ação principal (Criar / Atualizar)
   Widget _buildActionButton(ProjectFormViewModel vm, BuildContext context) {
     return SizedBox(
       width: double.infinity,
@@ -530,10 +739,5 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
         }
       }
     }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }

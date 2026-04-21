@@ -86,6 +86,24 @@ class ProjectFormViewModel extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
+  /// Envia texto ao backend, preenche o formulário e armazena vagas sugeridas.
+  Future<void> importarDeTexto(String descricao) async {
+    loadingIA = true;
+    erroIA = null;
+    _safeNotifyListeners();
+
+    final result = await AiController.sugerirProjetoPorTexto(descricao);
+
+    if (result.erro != null) {
+      erroIA = result.erro;
+      loadingIA = false;
+      _safeNotifyListeners();
+      return;
+    }
+
+    _aplicarDadosIA(result.dados!);
+  }
+
   /// Envia PDF ao backend, preenche o formulário e armazena vagas sugeridas.
   Future<void> importarDePdf(File arquivo) async {
     loadingIA = true;
@@ -101,7 +119,10 @@ class ProjectFormViewModel extends ChangeNotifier {
       return;
     }
 
-    final dados = result.dados!;
+    _aplicarDadosIA(result.dados!);
+  }
+
+  void _aplicarDadosIA(Map<String, dynamic> dados) {
     if (dados['nome'] != null) nomeController.text = dados['nome'].toString();
     if (dados['descricao'] != null) descricaoController.text = dados['descricao'].toString();
     if (dados['tipo'] != null) tipo = dados['tipo'].toString();
