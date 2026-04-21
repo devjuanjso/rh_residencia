@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/components/loading_overlay.dart';
 import '../../../core/layout/empty_state.dart';
 import '../components/project_card.dart';
+import '../components/project_default_cover.dart';
 import '../components/position_list_item.dart';
 import '../../recomendacao/view/candidatos_modal.dart';
 import '../../position/model/position_model.dart';
@@ -22,14 +23,12 @@ class ProjectDetailPage extends StatefulWidget {
 }
 
 class _ProjectDetailPageState extends State<ProjectDetailPage> {
-  // Lista local de vagas carregadas para este projeto
   final List<Position> _positions = [];
 
   bool _isLoading = false;
   bool _isTogglingStatus = false;
   String _errorMessage = '';
 
-  // Espelha o status do projeto localmente para refletir mudancas sem recarregar
   late String _status;
 
   static const Color _purple = Color(0xFF6B21A8);
@@ -42,7 +41,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     _loadPositions();
   }
 
-  // Busca as vagas do projeto atual e atualiza o estado
   Future<void> _loadPositions() async {
     setState(() {
       _isLoading = true;
@@ -65,7 +63,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
   }
 
-  // Atualiza o status do projeto para o valor fornecido
   Future<void> _handleSetStatus(String novoStatus) async {
     setState(() => _isTogglingStatus = true);
 
@@ -102,7 +99,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
   }
 
-  // Confirma acao de encerrar o projeto
   void _confirmEncerrar() {
     showDialog(
       context: context,
@@ -128,7 +124,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Exibe dialogo de confirmacao antes de excluir a vaga
   void _showDeleteDialog(Position position) {
     showDialog(
       context: context,
@@ -144,7 +139,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             onPressed: () async {
               Navigator.of(dialogContext).pop();
               try {
-                // Exclui a vaga e recarrega a lista em caso de sucesso
                 await PositionController.delete(position.id);
                 if (mounted) await _loadPositions();
               } catch (e) {
@@ -192,7 +186,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Barra superior com botao de voltar, titulo e botao de adicionar vaga
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
@@ -216,7 +209,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             ),
           ),
           const SizedBox(width: 12),
-          // Botao para navegar ao formulario de criacao de vaga
           GestureDetector(
             onTap: _handleAddPosition,
             child: Container(
@@ -232,7 +224,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Exibe a imagem de capa do projeto ou um placeholder cinza
   Widget _buildCoverImage() {
     if (widget.project.imagem != null && widget.project.imagem!.isNotEmpty) {
       return SizedBox(
@@ -241,25 +232,14 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         child: Image.network(
           widget.project.imagem!,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _placeholderCover(),
+          errorBuilder: (_, __, ___) =>
+              ProjectDefaultCover(tipo: widget.project.tipo, height: 160),
         ),
       );
     }
-    return _placeholderCover();
+    return ProjectDefaultCover(tipo: widget.project.tipo, height: 160);
   }
 
-  // Placeholder exibido quando nao ha imagem ou ocorre erro de carregamento
-  Widget _placeholderCover() {
-    return Container(
-      height: 160,
-      width: double.infinity,
-      color: Colors.grey[900],
-      child: const Center(
-          child: Icon(Icons.image_outlined, color: Colors.white30, size: 48)),
-    );
-  }
-
-  // Secao com nome, descricao, metadados e toggle de status do projeto
   Widget _buildProjectInfo() {
     final p = widget.project;
     return Padding(
@@ -308,7 +288,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Painel de status com acoes conforme o estado atual do projeto
   Widget _buildStatusToggle() {
     final Color bgColor;
     final Color borderColor;
@@ -392,7 +371,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Botoes de acao conforme o status atual
   Widget _buildStatusActions() {
     if (_status == 'rascunho') {
       return SizedBox(
@@ -447,7 +425,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       );
     }
 
-    // encerrado
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
@@ -464,7 +441,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Badge visual indicando o status do projeto
   Widget _buildStatusBadge(String status) {
     final Color bg;
     final Color fg;
@@ -497,7 +473,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Linha de metadado com icone e texto truncado
   Widget _buildMetaRow(IconData icon, String text) {
     return Row(
       children: [
@@ -515,7 +490,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Secao que lista as vagas do projeto com cabecalho e contador
   Widget _buildPositionsSection() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -532,7 +506,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     fontWeight: FontWeight.bold,
                     color: Colors.black87),
               ),
-              // Exibe o total de vagas somente apos o carregamento
               if (!_isLoading && _positions.isNotEmpty)
                 Text(
                   '${_positions.length} ${_positions.length == 1 ? 'vaga' : 'vagas'}',
@@ -547,7 +520,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Decide qual widget renderizar com base no estado atual das vagas
   Widget _buildPositionsContent() {
     if (_isLoading) {
       return const Center(
@@ -562,7 +534,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     return Column(children: _positions.map(_buildVagaCard).toList());
   }
 
-  // Estado de erro com mensagem e botao para tentar novamente
   Widget _buildErrorState() {
     return Center(
       child: Padding(
@@ -593,7 +564,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Estado vazio com instrucao e atalho para criar a primeira vaga
   Widget _buildEmptyState() {
     return SizedBox(
       height: 300,
@@ -633,7 +603,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Card individual de vaga com acoes de editar, excluir e ver detalhes
   Widget _buildVagaCard(Position position) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -643,7 +612,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: InkWell(
-        // Toque no card inteiro abre o modal de candidatos
         onTap: () => _handleViewDetails(position),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
@@ -664,7 +632,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  // Botao de editar vaga
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => _handleEditPosition(position),
@@ -675,7 +642,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  // Botao de excluir vaga
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => _showDeleteDialog(position),
@@ -686,7 +652,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Botao ver detalhes abre o modal de candidatos da vaga
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => _handleViewDetails(position),
@@ -714,7 +679,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  // Navega para o formulario de criacao de vaga e recarrega a lista ao retornar
   Future<void> _handleAddPosition() async {
     final result = await Navigator.push(
       context,
@@ -727,12 +691,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     if (result == true && mounted) await _loadPositions();
   }
 
-  // Abre o modal de candidatos recomendados para a vaga selecionada
   void _handleViewDetails(Position position) {
     showCandidatosModal(context, position.id);
   }
 
-  // Navega para o formulario de edicao da vaga e recarrega a lista ao retornar
   Future<void> _handleEditPosition(Position position) async {
     final result = await Navigator.push(
       context,

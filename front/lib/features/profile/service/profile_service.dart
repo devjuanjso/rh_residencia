@@ -26,7 +26,6 @@ class ProfileService {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
 
-    // Se token expirou tenta refresh automático
     if (response.statusCode == 401 || response.statusCode == 403) {
       final authService = AuthService();
       final newToken = await authService.refreshAccessToken();
@@ -46,7 +45,6 @@ class ProfileService {
       }
     }
 
-    // Mensagem de erro mais informativa para facilitar debugging
     throw Exception(
         "Erro ao buscar perfil: ${response.statusCode} - ${response.body}");
   }
@@ -71,7 +69,6 @@ class ProfileService {
       return;
     }
 
-    // Se token expirou tenta refresh automático
     if (response.statusCode == 401 || response.statusCode == 403) {
       final authService = AuthService();
       final newToken = await authService.refreshAccessToken();

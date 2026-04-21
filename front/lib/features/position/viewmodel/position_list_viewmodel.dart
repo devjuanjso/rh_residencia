@@ -7,7 +7,6 @@ class PositionListViewModel extends ChangeNotifier {
   bool isLoading = false;
   String errorMessage = '';
 
-  // Carrega a lista de vagas, com opção de filtrar por projeto
   Future<void> loadPositions({String? projetoId}) async {
     isLoading = true;
     errorMessage = '';
@@ -23,7 +22,6 @@ class PositionListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Remove uma vaga específica da lista pelo seu ID
   Future<void> removePosition(String id) async {
     isLoading = true;
     errorMessage = '';

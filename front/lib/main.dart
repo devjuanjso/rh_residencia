@@ -11,10 +11,8 @@ import 'features/auth/view/login_page.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
 
 Future<void> main() async {
-  // Garante que bindings do Flutter estejam inicializados
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Instancia o AuthViewModel e tenta restaurar sessão salva
   final authViewModel = AuthViewModel();
   await authViewModel.loadUserFromStorage();
 
@@ -65,7 +63,6 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      // Define tela inicial com base no estado de autenticação
       home: auth.isAuthenticated
           ? const HomePage()
           : const LoginPage(),

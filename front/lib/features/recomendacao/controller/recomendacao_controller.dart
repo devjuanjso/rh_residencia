@@ -7,7 +7,6 @@ import '../model/recomendacao_model.dart';
 class RecomendacaoController {
   static final SecureStorageService _storage = SecureStorageService();
 
-  // Monta headers com token de autenticacao
   static Future<Map<String, String>> _headers() async {
     final token = await _storage.getToken();
     return {
@@ -16,7 +15,6 @@ class RecomendacaoController {
     };
   }
 
-  // Busca candidatos recomendados para uma vaga especifica
   static Future<List<Recomendacao>> porVaga(String vagaId) async {
     final uri = Uri.parse('${Config.baseUrl}/recomendacoes/')
         .replace(queryParameters: {'vaga': vagaId});

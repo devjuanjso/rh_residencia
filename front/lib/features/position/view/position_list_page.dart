@@ -44,7 +44,6 @@ class PositionListPage extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, PositionListViewModel viewModel) {
-    // Exibe mensagem de erro
     if (viewModel.errorMessage.isNotEmpty) {
       return ErrorState(
         message: viewModel.errorMessage,
@@ -52,7 +51,6 @@ class PositionListPage extends StatelessWidget {
       );
     }
 
-    // Exibe estado vazio
     if (viewModel.positions.isEmpty) {
       return EmptyState(
         icon: Icons.work_outline,
@@ -73,7 +71,6 @@ class PositionListPage extends StatelessWidget {
       );
     }
 
-    // Renderiza a lista de vagas
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: viewModel.positions.length,

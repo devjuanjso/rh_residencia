@@ -13,17 +13,14 @@ class RecomendacaoViewModel extends ChangeNotifier {
 
   final _candidaturaController = CandidaturaController();
 
-  // retorna true se o candidato ja teve decisao tomada
   bool jaDecidido(String status) => status == 'aceito' || status == 'rejeitado';
 
-  // cor do badge de compatibilidade por faixa de valor
   Color corCompatibilidade(double valor) {
     if (valor >= 0.7) return const Color(0xFF16A34A);
     if (valor >= 0.4) return const Color(0xFFD97706);
     return const Color(0xFFDC2626);
   }
 
-  // cor e icone do badge de status final do candidato
   ({Color cor, Color bg, String label, IconData icon}) dadosBadgeStatus(String status) {
     final aceito = status == 'aceito';
     final cor = aceito ? const Color(0xFF16A34A) : Colors.red;
@@ -35,7 +32,6 @@ class RecomendacaoViewModel extends ChangeNotifier {
     );
   }
 
-  // cor e icone do overlay animado de resultado
   ({Color cor, Color bg, IconData icon, String titulo}) dadosOverlay(String decisao) {
     final aceito = decisao == 'aceito';
     final cor = aceito ? const Color(0xFF16A34A) : Colors.red;
@@ -47,7 +43,6 @@ class RecomendacaoViewModel extends ChangeNotifier {
     );
   }
 
-  // busca, ordena por compatibilidade e armazena candidatos da vaga
   Future<void> carregar(String vagaId) async {
     isLoading = true;
     errorMessage = '';
@@ -68,7 +63,6 @@ class RecomendacaoViewModel extends ChangeNotifier {
     }
   }
 
-  // envia decisao, atualiza status local e prepara dados do overlay
   Future<bool> decidir(String candidaturaId, String decisao, String nomeCandidato) async {
     isProcessando = true;
     notifyListeners();
@@ -100,7 +94,6 @@ class RecomendacaoViewModel extends ChangeNotifier {
     }
   }
 
-  // limpa o estado de decisao apos fechar o overlay
   void limparDecisao() {
     decisaoFeita = null;
     candidatoDecidido = null;

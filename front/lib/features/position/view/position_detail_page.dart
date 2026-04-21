@@ -74,12 +74,10 @@ class PositionDetailPage extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // Seção de detalhes
               PositionDetailSection(position: position),
               
               const SizedBox(height: 24),
               
-              // Botão de ação secundário
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(

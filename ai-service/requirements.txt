@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 requests
-pypdf
+pymupdf
 python-multipart
 numpy
+pillow

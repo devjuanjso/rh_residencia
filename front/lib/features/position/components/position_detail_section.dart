@@ -78,7 +78,7 @@ class PositionDetailSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        senioridade, // agora exibe direto, sem mapear
+        senioridade,
         style: const TextStyle(
           color: Colors.white,
           fontSize: 12,

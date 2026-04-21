@@ -8,6 +8,7 @@ import '../../projects/view/project_detail_page.dart';
 import '../../projects/view/project_form_page.dart';
 import '../../projects/viewmodel/project_list_viewmodel.dart';
 import '../../position/viewmodel/position_list_viewmodel.dart';
+import '../../projects/components/project_default_cover.dart';
 
 class MyProjectsPage extends StatefulWidget {
   const MyProjectsPage({super.key});
@@ -35,7 +36,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     super.dispose();
   }
 
-  // Filtra projetos por texto de busca e filtro de status selecionado.
   List<Project> _applyFilters(List<Project> projetos) {
     return projetos.where((p) {
       final matchesSearch = _searchQuery.isEmpty ||
@@ -51,7 +51,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     }).toList();
   }
 
-  // Retorna a fatia da página atual para a lista de projetos.
   List<Project> _paginate(List<Project> filtered) {
     final start = (_currentPage - 1) * _itemsPerPage;
     final end = (start + _itemsPerPage).clamp(0, filtered.length);
@@ -59,7 +58,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     return filtered.sublist(start, end);
   }
 
-  // Retorna a fatia da página atual para a lista de candidaturas.
   List<Candidatura> _paginateCandidaturas(List<Candidatura> filtered) {
     final start = (_currentPage - 1) * _itemsPerPage;
     final end = (start + _itemsPerPage).clamp(0, filtered.length);
@@ -67,7 +65,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     return filtered.sublist(start, end);
   }
 
-  // Recarrega projetos e candidaturas simultaneamente.
   Future<void> _onRefresh(ProjectListViewModel projectVm, CandidaturaListViewModel candidaturaVm) async {
     await Future.wait([
       projectVm.carregarMeusProjetos(),
@@ -92,7 +89,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
         body: SafeArea(
           child: Consumer2<ProjectListViewModel, CandidaturaListViewModel>(
             builder: (context, projectVm, candidaturaVm, _) {
-              // Sincroniza o texto de busca com o viewmodel de candidaturas.
               if (candidaturaVm.searchQuery != _searchQuery) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   candidaturaVm.setSearch(_searchQuery);
@@ -140,7 +136,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Constrói o cabeçalho com botão de voltar e botão de novo projeto.
   Widget _buildHeader(BuildContext context, ProjectListViewModel projectVm) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -190,7 +185,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Constrói o campo de busca e propaga o valor para o vm de candidaturas.
   Widget _buildSearchBar(CandidaturaListViewModel candidaturaVm) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -219,7 +213,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Renderiza os chips de filtro animados.
   Widget _buildFilterChips() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -256,7 +249,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Exibe a lista paginada de projetos com estados de loading e vazio.
   Widget _buildProjetosList(ProjectListViewModel vm, List<Project> filtered, List<Project> paginated) {
     if (vm.loading && vm.projetos.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -271,7 +263,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Exibe a lista paginada de candidaturas com estados de loading e vazio.
   Widget _buildCandidaturasList(
     CandidaturaListViewModel vm,
     List<Candidatura> paginated,
@@ -288,7 +279,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Tela de estado vazio diferenciada para projetos e candidaturas.
   Widget _buildEmpty({required bool isCandidatura}) {
     return Center(
       child: Column(
@@ -317,7 +307,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Tela exibida quando a busca não retorna resultados.
   Widget _buildNenhumEncontrado() {
     return Center(
       child: Column(
@@ -332,7 +321,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Card de projeto com ações de editar, excluir e badge de rascunho.
   Widget _buildProjectCard(BuildContext context, Project projeto, ProjectListViewModel vm) {
     return Card(
       elevation: 0,
@@ -405,27 +393,22 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Exibe a imagem de capa do projeto ou um placeholder escuro.
   Widget _buildCoverImage(Project projeto) {
     if (projeto.imagem != null && projeto.imagem!.isNotEmpty) {
       return SizedBox(
         height: 160,
         width: double.infinity,
-        child: Image.network(projeto.imagem!,
-            fit: BoxFit.cover, errorBuilder: (_, __, ___) => _placeholderCover()),
+        child: Image.network(
+          projeto.imagem!,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+              ProjectDefaultCover(tipo: projeto.tipo, height: 160),
+        ),
       );
     }
-    return _placeholderCover();
+    return ProjectDefaultCover(tipo: projeto.tipo, height: 160);
   }
 
-  Widget _placeholderCover() => Container(
-        height: 160,
-        width: double.infinity,
-        color: Colors.grey[900],
-        child: const Center(child: Icon(Icons.image_outlined, color: Colors.white30, size: 48)),
-      );
-
-  // Badge colorido indicando o status do projeto.
   Widget _buildStatusBadge(String status) {
     final Color bg;
     final Color fg;
@@ -458,7 +441,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Linha de informação com ícone à esquerda e texto truncado.
   Widget _buildInfoRow(IconData icon, String text) => Row(
         children: [
           Icon(icon, size: 15, color: Colors.grey[500]),
@@ -472,7 +454,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
         ],
       );
 
-  // Converte a chave interna do tipo para label legível.
   String _formatTipo(String tipo) {
     const labels = {
       'produto_digital': 'Produto digital',
@@ -483,11 +464,9 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     return labels[tipo] ?? tipo;
   }
 
-  // Formata DateTime para o padrão dd/MM/yyyy.
   String _formatDate(DateTime date) =>
       '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
 
-  // Controles de paginação com botões anterior, páginas numeradas e próximo.
   Widget _buildPagination(int totalPages) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -536,12 +515,10 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  // Navega para a página de detalhe do projeto selecionado.
   void _navigateToProjectDetail(BuildContext context, Project projeto) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => ProjectDetailPage(project: projeto)));
   }
 
-  // Navega para o formulário de edição e recarrega a lista ao voltar.
   void _navigateToEditProject(BuildContext context, Project projeto, ProjectListViewModel vm) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => ProjectFormPage(projetoId: projeto.id)))
         .then((updated) {
@@ -549,7 +526,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     });
   }
 
-  // Navega para o formulário de criação e recarrega a lista ao voltar.
   void _navigateToAddProject(BuildContext context, ProjectListViewModel vm) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const ProjectFormPage()))
         .then((value) {
@@ -557,7 +533,6 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     });
   }
 
-  // Exibe diálogo de confirmação antes de excluir o projeto.
   void _confirmDelete(BuildContext context, Project projeto, ProjectListViewModel vm) {
     showDialog(
       context: context,

@@ -41,7 +41,7 @@ class ProfileModel {
       username: json["username"],
       firstName: json["first_name"] ?? '',
       lastName: json["last_name"] ?? '',
-      nomeCompleto: json["nome_completo"] ?? json["username"], // fallback para username
+      nomeCompleto: json["nome_completo"] ?? json["username"],
       email: json["email"],
       role: json["role"],
       cargo: json["cargo"],

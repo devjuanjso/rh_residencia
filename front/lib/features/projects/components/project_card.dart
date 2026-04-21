@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../model/project_model.dart';
+import 'project_default_cover.dart';
 
 class ProjectCard extends StatelessWidget {
   final Project project;
@@ -39,24 +40,15 @@ class ProjectCard extends StatelessWidget {
   Widget _buildProjectImage() {
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      child: project.imagem != null
+      child: project.imagem != null && project.imagem!.isNotEmpty
           ? Image.network(
               project.imagem!,
               height: 220,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
+              errorBuilder: (_, __, ___) =>
+                  ProjectDefaultCover(tipo: project.tipo, height: 220),
             )
-          : _buildImagePlaceholder(),
-    );
-  }
-
-  Widget _buildImagePlaceholder() {
-    return Container(
-      height: 220,
-      color: Colors.grey[200],
-      child: const Center(
-        child: Icon(Icons.image_outlined, size: 80, color: Colors.grey),
-      ),
+          : ProjectDefaultCover(tipo: project.tipo, height: 220),
     );
   }
 

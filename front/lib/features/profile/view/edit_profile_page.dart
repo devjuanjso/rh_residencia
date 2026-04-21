@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/services/ai_controller.dart';
 import '../viewmodel/profile_viewmodel.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -25,7 +28,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String? selectedSenioridade;
   String? selectedArea;
 
-  // Inicializa controllers com dados do perfil atual
   @override
   void initState() {
     super.initState();
@@ -49,6 +51,57 @@ class _EditProfilePageState extends State<EditProfilePage> {
       vm.initForm(profile);
       vm.loadChoices();
     });
+  }
+
+  bool _loadingCurriculo = false;
+
+  Future<void> _importarCurriculo(ProfileViewModel vm) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+    if (result == null || result.files.single.path == null) return;
+
+    setState(() => _loadingCurriculo = true);
+
+    final r = await AiController.analisarCurriculo(File(result.files.single.path!));
+
+    setState(() => _loadingCurriculo = false);
+
+    if (!mounted) return;
+
+    if (r.erro != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(r.erro!), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    final dados = r.dados!;
+
+    if (firstNameController.text.isEmpty && dados['nome'] != null) {
+      final partes = dados['nome'].toString().split(' ');
+      firstNameController.text = partes.first;
+      if (partes.length > 1) lastNameController.text = partes.skip(1).join(' ');
+    }
+    if (emailController.text.isEmpty && dados['email'] != null) {
+      emailController.text = dados['email'].toString();
+    }
+    if (formacaoController.text.isEmpty && dados['formacao'] != null) {
+      formacaoController.text = dados['formacao'].toString();
+    }
+    if (bioController.text.isEmpty && dados['resumo_profissional'] != null) {
+      bioController.text = dados['resumo_profissional'].toString();
+    }
+
+    vm.importarDoCurriculo(dados);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Dados importados! Revise e salve.'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   @override
@@ -75,6 +128,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _buildCurriculoBanner(vm),
+                    const SizedBox(height: 16),
                     _buildAvatarSection(vm),
                     const SizedBox(height: 16),
                     _buildInfoCard(vm),
@@ -90,7 +145,61 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Avatar com nome completo somente leitura
+  Widget _buildCurriculoBanner(ProfileViewModel vm) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.deepPurple.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.deepPurple.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.auto_awesome, color: Colors.deepPurple.shade400, size: 20),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Importar currículo',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.deepPurple)),
+                SizedBox(height: 2),
+                Text('A IA extrai habilidades, formação e dados do PDF',
+                    style: TextStyle(fontSize: 11, color: Colors.deepPurple)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _loadingCurriculo
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.deepPurple),
+                )
+              : TextButton.icon(
+                  onPressed: () => _importarCurriculo(vm),
+                  icon: const Icon(Icons.upload_file, size: 16),
+                  label: const Text('Importar PDF'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.deepPurple,
+                    backgroundColor: Colors.white,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(color: Colors.deepPurple),
+                    ),
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAvatarSection(ProfileViewModel vm) {
     final profile = vm.profile!;
     return Center(
@@ -114,7 +223,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Card com todos os campos editáveis
   Widget _buildInfoCard(ProfileViewModel vm) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -144,7 +252,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Card de habilidades com input e chips removíveis
   Widget _buildHabilidadesCard(ProfileViewModel vm) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -188,7 +295,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Card de formação acadêmica com input e lista removível
   Widget _buildFormacaoCard(ProfileViewModel vm) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -232,7 +338,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Item de formação com botão remover
   Widget _formacaoEditavel(String text, VoidCallback onRemove) {
     return Container(
       width: double.infinity,
@@ -254,7 +359,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Chip roxo com botão X
   Widget _chipRemovivel(String label, VoidCallback onRemove) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -276,7 +380,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Campo de texto padrão com borda arredondada
   Widget _buildTextField(String label, TextEditingController controller,
       {int maxLines = 1, String? hint}) {
     return Column(
@@ -296,7 +399,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Dropdown para seleção de opções vindas da API
   Widget _buildDropdown(
     String label,
     List<Map<String, dynamic>> options,
@@ -326,7 +428,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Salva perfil e volta para tela anterior
   Future<void> _salvar(ProfileViewModel vm) async {
     await vm.updateProfile(
       firstName: firstNameController.text.trim(),
@@ -342,7 +443,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (mounted) Navigator.pop(context);
   }
 
-  // Decoração padrão dos cards
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
       color: Colors.white,
@@ -351,7 +451,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Libera controllers ao destruir a tela
   @override
   void dispose() {
     firstNameController.dispose();

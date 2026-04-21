@@ -15,7 +15,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
 
-  // Carrega perfil após primeiro frame
   @override
   void initState() {
     super.initState();
@@ -51,7 +50,6 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  // Diálogo de confirmação de logout
   Future<void> _confirmLogout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -130,7 +128,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Avatar, nome completo e chips de cargo/senioridade/area
   Widget _buildHeader(profile) {
     return Center(
       child: Column(
@@ -164,7 +161,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Card com email, bio, formacao e linkedin
   Widget _buildInfoCard(profile) {
     return Container(
       width: double.infinity,
@@ -195,7 +191,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Label + valor padrão
   Widget _buildInfoRow(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,7 +202,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Card de habilidades em chips roxos
   Widget _buildHabilidadesCard(profile) {
     return Container(
       width: double.infinity,
@@ -235,7 +229,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Card de formação em caixas com borda
   Widget _buildFormacaoCard(profile) {
     return Container(
       width: double.infinity,
@@ -261,7 +254,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Item de formação com borda arredondada
   Widget _formacaoItem(String text) {
     return Container(
       width: double.infinity,
@@ -275,7 +267,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Chip roxo para habilidades e info profissional
   Widget _chip(String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -287,7 +278,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Decoração padrão dos cards
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
       color: Colors.white,

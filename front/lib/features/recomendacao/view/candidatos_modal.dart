@@ -3,7 +3,6 @@ import 'package:front/features/recomendacao/model/recomendacao_model.dart';
 import 'package:front/features/recomendacao/viewmodel/recomendacao_view_model.dart';
 import 'package:provider/provider.dart';
 
-// abre o bottom sheet de candidatos vinculado ao viewmodel da vaga
 void showCandidatosModal(BuildContext context, String vagaId) {
   showModalBottomSheet(
     context: context,
@@ -38,7 +37,6 @@ class _CandidatosSheetState extends State<_CandidatosSheet> {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        // alterna entre lista e detalhe com slide horizontal
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           transitionBuilder: (child, animation) {
@@ -93,7 +91,6 @@ class _Lista extends StatelessWidget {
     );
   }
 
-  // barra de arraste no topo do sheet
   Widget _buildHandle() {
     return Padding(
       padding: const EdgeInsets.only(top: 12, bottom: 8),
@@ -108,7 +105,6 @@ class _Lista extends StatelessWidget {
     );
   }
 
-  // titulo e contador de candidatos
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
@@ -137,7 +133,6 @@ class _Lista extends StatelessWidget {
     );
   }
 
-  // exibe loading, erro com retry, vazio ou lista de cards
   Widget _buildBody() {
     return Consumer<RecomendacaoViewModel>(
       builder: (_, vm, __) {

@@ -33,12 +33,10 @@ class EmptyState extends StatelessWidget {
     );
   }
 
-  // Ícone ilustrativo do estado vazio
   Widget _buildIcon() {
     return Icon(icon, size: 80, color: Colors.grey);
   }
 
-  // Título principal
   Widget _buildTitle() {
     return Text(
       title,
@@ -49,7 +47,6 @@ class EmptyState extends StatelessWidget {
     );
   }
 
-  // Descrição opcional
   Widget _buildDescription() {
     if (description == null) return const SizedBox.shrink();
 
@@ -65,7 +62,6 @@ class EmptyState extends StatelessWidget {
     );
   }
 
-  // Botão ou ação opcional
   Widget _buildAction() {
     if (action == null) return const SizedBox.shrink();
 

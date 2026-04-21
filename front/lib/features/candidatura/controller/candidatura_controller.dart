@@ -48,7 +48,6 @@ class CandidaturaController {
     return [];
   }
 
-  // "aceito" ou "rejeitado"
   Future<bool> decidir({
     required String candidaturaId,
     required String decisao,

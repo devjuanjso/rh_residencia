@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/components/image_picker_field.dart';
@@ -122,12 +124,32 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
     );
   }
 
+  Future<void> _handleImportarPdf(ProjectFormViewModel vm) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+    if (result == null || result.files.single.path == null) return;
+    await vm.importarDePdf(File(result.files.single.path!));
+
+    if (vm.erroIA != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(vm.erroIA!), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   Widget _buildFormContent(BuildContext context, ProjectFormViewModel vm) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Banner de importação por PDF (somente ao criar)
+          if (widget.projetoId == null) ...[
+            _buildPdfImportBanner(vm),
+            const SizedBox(height: 20),
+          ],
           _buildField(
             label: 'Nome do projeto',
             required: true,
@@ -151,11 +173,143 @@ class _ProjectsFormPageState extends State<ProjectFormPage> {
           _buildDataInicioField(context, vm),
           const SizedBox(height: 18),
           _buildImagePicker(vm),
+          // Vagas sugeridas pela IA
+          if (vm.vagasSugeridas.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            _buildVagasSugeridas(vm),
+          ],
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Divider(height: 0.5, thickness: 0.5, color: Color(0xFFE8E8E8)),
           ),
           _buildActionButton(vm, context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPdfImportBanner(ProjectFormViewModel vm) {
+    if (vm.loadingIA) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEEEDFE),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFAFA9EC)),
+        ),
+        child: const Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: _purple),
+            ),
+            SizedBox(width: 12),
+            Text('Analisando documento com IA...',
+                style: TextStyle(fontSize: 13, color: _purpleDark)),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEEDFE),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFAFA9EC)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.auto_awesome, color: _purple, size: 20),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Criar com IA',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _purpleDark)),
+                SizedBox(height: 2),
+                Text('Importe um PDF e a IA preenche o projeto e sugere vagas',
+                    style: TextStyle(fontSize: 11, color: _purpleDark)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          TextButton.icon(
+            onPressed: () => _handleImportarPdf(vm),
+            icon: const Icon(Icons.upload_file, size: 16),
+            label: const Text('Importar PDF'),
+            style: TextButton.styleFrom(
+              foregroundColor: _purple,
+              backgroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: const BorderSide(color: _purple)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVagasSugeridas(ProjectFormViewModel vm) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFBBF7D0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.work_outline, color: Color(0xFF16A34A), size: 18),
+              const SizedBox(width: 8),
+              Text(
+                'Vagas sugeridas pela IA (${vm.vagasSelecionadas.length}/${vm.vagasSugeridas.length} selecionadas)',
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF15803D)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Serão criadas automaticamente ao salvar o projeto',
+            style: TextStyle(fontSize: 11, color: Color(0xFF16A34A)),
+          ),
+          const SizedBox(height: 12),
+          ...vm.vagasSugeridas.asMap().entries.map((e) {
+            final idx = e.key;
+            final vaga = e.value;
+            final selecionada = vm.vagasSelecionadas.contains(idx);
+            return CheckboxListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              value: selecionada,
+              onChanged: (_) => vm.toggleVagaSugerida(idx),
+              activeColor: const Color(0xFF16A34A),
+              title: Text(
+                vaga['titulo']?.toString() ?? 'Vaga',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+              subtitle: Text(
+                [
+                  if (vaga['area'] != null) vaga['area'],
+                  if (vaga['senioridade'] != null) vaga['senioridade'],
+                ].join(' · '),
+                style: const TextStyle(fontSize: 11, color: Colors.black54),
+              ),
+            );
+          }),
         ],
       ),
     );

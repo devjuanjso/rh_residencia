@@ -29,12 +29,10 @@ class ErrorState extends StatelessWidget {
     );
   }
 
-  // Ícone de erro
   Widget _buildErrorIcon() {
     return const Icon(Icons.error_outline, size: 80, color: Colors.red);
   }
 
-  // Mensagem de erro
   Widget _buildErrorMessage() {
     return Text(
       message,
@@ -43,7 +41,6 @@ class ErrorState extends StatelessWidget {
     );
   }
 
-  // Botão para tentar novamente
   Widget _buildRetryButton() {
     return ElevatedButton.icon(
       onPressed: onRetry,

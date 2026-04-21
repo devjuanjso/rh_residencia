@@ -13,10 +13,8 @@ class AuthViewModel extends ChangeNotifier {
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
 
-  // Retorna verdadeiro se houver usuário autenticado em memória
   bool get isAuthenticated => _user != null;
 
-  // Realiza login na API, salva token localmente e atualiza estado
   Future<void> login(String username, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -25,10 +23,8 @@ class AuthViewModel extends ChangeNotifier {
       final data = await _authService.login(username, password);
       final token = data["access"];
 
-      // Salva token de forma segura no dispositivo
       await _storage.saveToken(token);
 
-      // Atualiza usuário em memória
       _user = UserModel(
         id: "",
         username: username,
@@ -46,7 +42,6 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Carrega token salvo ao iniciar o app e restaura sessão
   Future<void> loadUserFromStorage() async {
     final token = await _storage.getToken();
 
@@ -63,7 +58,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // Remove token salvo e limpa usuário da memória
   Future<void> logout() async {
     await _storage.deleteToken();
     _user = null;

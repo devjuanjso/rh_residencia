@@ -31,12 +31,10 @@ class CustomCard extends StatelessWidget {
     );
   }
 
-  // Define o raio da borda
   BorderRadiusGeometry _getBorderRadius() {
     return borderRadius ?? BorderRadius.circular(16);
   }
 
-  // Define o padding interno
   EdgeInsetsGeometry _getPadding() {
     return padding ?? const EdgeInsets.all(16);
   }

@@ -23,7 +23,6 @@ class ProfileViewModel extends ChangeNotifier {
   List<String> get habilidades => _habilidades;
   List<String> get certificacoes => _certificacoes;
 
-  // Carrega o perfil do usuário da API
   Future<void> loadProfile() async {
     _isLoading = true;
     notifyListeners();
@@ -39,7 +38,6 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  // Carrega as opções de cargo, senioridade e área
   Future<void> loadChoices() async {
     try {
       final data = await _service.getChoices();
@@ -52,14 +50,12 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  // Inicializa listas do formulário com dados do perfil
   void initForm(ProfileModel profile) {
     _habilidades..clear()..addAll(profile.habilidades);
     _certificacoes..clear()..addAll(profile.certificacoes);
     notifyListeners();
   }
 
-  // Adiciona habilidade se não duplicada
   void addHabilidade() {
     final value = habilidadeController.text.trim();
     if (value.isEmpty || _habilidades.contains(value)) return;
@@ -68,13 +64,11 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Remove uma habilidade
   void removeHabilidade(String value) {
     _habilidades.remove(value);
     notifyListeners();
   }
 
-  // Adiciona formação se não duplicada
   void addCertificacao() {
     final value = certificacaoController.text.trim();
     if (value.isEmpty || _certificacoes.contains(value)) return;
@@ -83,13 +77,11 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Remove uma formação
   void removeCertificacao(String value) {
     _certificacoes.remove(value);
     notifyListeners();
   }
 
-  // Envia atualização do perfil para a API
   Future<void> updateProfile({
     required String firstName,
     required String lastName,
@@ -126,7 +118,21 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  // Libera os controllers ao destruir o ViewModel
+  // Mescla habilidades e certificações extraídas do currículo sem duplicar existentes.
+  void importarDoCurriculo(Map<String, dynamic> dados) {
+    final habilidades = List<String>.from(dados['habilidades'] ?? []);
+    for (final h in habilidades) {
+      if (h.isNotEmpty && !_habilidades.contains(h)) _habilidades.add(h);
+    }
+
+    final certs = List<String>.from(dados['certificacoes'] ?? []);
+    for (final c in certs) {
+      if (c.isNotEmpty && !_certificacoes.contains(c)) _certificacoes.add(c);
+    }
+
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     habilidadeController.dispose();

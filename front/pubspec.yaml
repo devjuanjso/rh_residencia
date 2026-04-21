@@ -42,6 +42,7 @@ dependencies:
   shared_preferences: ^2.2.2
   image_picker: ^1.2.1
   swipeable_card_stack: ^0.0.5
+  file_picker: ^8.1.2
 
 dev_dependencies:
   flutter_test:

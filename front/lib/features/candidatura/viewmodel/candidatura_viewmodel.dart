@@ -11,7 +11,6 @@ class CandidaturaListViewModel extends ChangeNotifier {
 
   List<Candidatura> get candidaturas => _candidaturas;
 
-  // ── Filtro / busca ──
   String searchQuery = '';
   String filtroStatus = 'Todos'; // 'Todos' | 'pendente' | 'aceito' | 'rejeitado'
 

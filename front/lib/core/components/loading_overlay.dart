@@ -22,7 +22,6 @@ class LoadingOverlay extends StatelessWidget {
     );
   }
 
-  // Overlay de carregamento com fundo semitransparente
   Widget _buildLoadingOverlay() {
     return Container(
       color: Colors.black.withOpacity(0.5),
@@ -38,12 +37,10 @@ class LoadingOverlay extends StatelessWidget {
     );
   }
 
-  // Indicador de progresso circular
   Widget _buildSpinner() {
     return const CircularProgressIndicator();
   }
 
-  // Mensagem opcional abaixo do spinner
   Widget _buildLoadingMessage() {
     if (message == null) return const SizedBox.shrink();
 

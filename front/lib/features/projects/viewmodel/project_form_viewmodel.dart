@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../core/services/ai_controller.dart';
+import '../../position/controller/position_controller.dart';
 import '../controller/project_controller.dart';
 
 class ProjectFormViewModel extends ChangeNotifier {
@@ -18,14 +20,18 @@ class ProjectFormViewModel extends ChangeNotifier {
 
   List<Map<String, String>> tiposDisponiveis = [];
 
-  // Busca tipos de projeto da API
+  // IA: sugestão gerada a partir de PDF
+  bool loadingIA = false;
+  List<Map<String, dynamic>> vagasSugeridas = [];
+  final Set<int> vagasSelecionadas = {}; // índices selecionados
+  String? erroIA;
+
   Future<void> carregarChoices() async {
     final choices = await ProjectController.buscarChoices();
     tiposDisponiveis = choices["tipos"] ?? [];
     _safeNotifyListeners();
   }
 
-  // Preenche o formulário com dados de um projeto existente
   void carregarProjetoParaEdicao({
     required String id,
     required String nome,
@@ -45,7 +51,6 @@ class ProjectFormViewModel extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  // Reseta todos os campos para estado inicial
   void limparDados() {
     nomeController.clear();
     descricaoController.clear();
@@ -59,33 +64,73 @@ class ProjectFormViewModel extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  // Atualiza imagem selecionada e descarta manter atual
   void setImagem(File? file) {
     imagem = file;
     manterImagemAtual = false;
     _safeNotifyListeners();
   }
 
-  // Alterna entre manter imagem atual ou remover
   void setManterImagemAtual(bool value) {
     manterImagemAtual = value;
     if (value) imagem = null;
     _safeNotifyListeners();
   }
 
-  // Atualiza tipo selecionado
   void setTipo(String? value) {
     tipo = value;
     _safeNotifyListeners();
   }
 
-  // Atualiza data de início selecionada
   void setDataInicio(DateTime? value) {
     dataInicio = value;
     _safeNotifyListeners();
   }
 
-  // Cria ou edita projeto conforme projetoId existir
+  /// Envia PDF ao backend, preenche o formulário e armazena vagas sugeridas.
+  Future<void> importarDePdf(File arquivo) async {
+    loadingIA = true;
+    erroIA = null;
+    _safeNotifyListeners();
+
+    final result = await AiController.sugerirProjetoPorPdf(arquivo);
+
+    if (result.erro != null) {
+      erroIA = result.erro;
+      loadingIA = false;
+      _safeNotifyListeners();
+      return;
+    }
+
+    final dados = result.dados!;
+    if (dados['nome'] != null) nomeController.text = dados['nome'].toString();
+    if (dados['descricao'] != null) descricaoController.text = dados['descricao'].toString();
+    if (dados['tipo'] != null) tipo = dados['tipo'].toString();
+
+    vagasSugeridas = List<Map<String, dynamic>>.from(dados['vagas_sugeridas'] ?? []);
+    vagasSelecionadas
+      ..clear()
+      ..addAll(List.generate(vagasSugeridas.length, (i) => i));
+
+    loadingIA = false;
+    _safeNotifyListeners();
+  }
+
+  void toggleVagaSugerida(int index) {
+    if (vagasSelecionadas.contains(index)) {
+      vagasSelecionadas.remove(index);
+    } else {
+      vagasSelecionadas.add(index);
+    }
+    _safeNotifyListeners();
+  }
+
+  void limparSugestaoIA() {
+    vagasSugeridas = [];
+    vagasSelecionadas.clear();
+    erroIA = null;
+    _safeNotifyListeners();
+  }
+
   Future<String?> salvarProjeto(BuildContext context) async {
     loading = true;
     _safeNotifyListeners();
@@ -118,6 +163,25 @@ class ProjectFormViewModel extends ChangeNotifier {
       loading = false;
       _safeNotifyListeners();
 
+          if (projetoIdCriado != null && projetoId == null && vagasSelecionadas.isNotEmpty) {
+        for (final idx in vagasSelecionadas) {
+          if (idx < vagasSugeridas.length) {
+            final v = vagasSugeridas[idx];
+            try {
+              await PositionController.create(
+                projetoId: projetoIdCriado,
+                titulo: v['titulo']?.toString() ?? 'Vaga',
+                senioridade: v['senioridade']?.toString(),
+                area: v['area']?.toString(),
+                habilidadesRequeridas: List<String>.from(v['habilidades_requeridas'] ?? []),
+                certificacoesRequeridas: const [],
+                formacaoDesejada: v['formacao_desejada']?.toString(),
+              );
+            } catch (_) {}
+          }
+        }
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -142,7 +206,6 @@ class ProjectFormViewModel extends ChangeNotifier {
     }
   }
 
-  // Envia PATCH com campos alterados sem feedback de UI
   Future<bool> atualizarProjetoParcial() async {
     if (projetoId == null) return false;
 
@@ -169,7 +232,6 @@ class ProjectFormViewModel extends ChangeNotifier {
     }
   }
 
-  // Busca projeto por ID e carrega no formulário
   Future<void> buscarProjetoParaEdicao(String id) async {
     loading = true;
     _safeNotifyListeners();
@@ -197,31 +259,25 @@ class ProjectFormViewModel extends ChangeNotifier {
     }
   }
 
-  // Verdadeiro se há algum campo preenchido
   bool get hasChanges =>
       nomeController.text.isNotEmpty ||
       descricaoController.text.isNotEmpty ||
       imagem != null ||
       manterImagemAtual != true;
 
-  // Verdadeiro se campos obrigatórios estão preenchidos
   bool get isValid =>
       nomeController.text.trim().isNotEmpty &&
       descricaoController.text.trim().isNotEmpty;
 
-  // Título dinâmico conforme modo criação ou edição
   String get screenTitle => projetoId != null ? 'Editar Projeto' : 'Novo Projeto';
 
-  // Texto do botão conforme modo criação ou edição
   String get actionButtonText => projetoId != null ? 'Atualizar' : 'Criar';
 
-  // Descarta controllers ao sair da tela
   void disposeControllers() {
     nomeController.dispose();
     descricaoController.dispose();
   }
 
-  // Notifica listeners apenas se houver algum inscrito
   void _safeNotifyListeners() {
     if (hasListeners) notifyListeners();
   }
