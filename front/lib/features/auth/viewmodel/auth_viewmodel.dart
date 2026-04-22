@@ -12,7 +12,6 @@ class AuthViewModel extends ChangeNotifier {
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
-
   bool get isAuthenticated => _user != null;
 
   Future<void> login(String username, String password) async {
@@ -21,15 +20,16 @@ class AuthViewModel extends ChangeNotifier {
 
     try {
       final data = await _authService.login(username, password);
-      final token = data["access"];
+      final token = data['access'] as String;
 
-      await _storage.saveToken(token);
+      // busca os dados reais do usuário após autenticação
+      final meData = await _authService.fetchMe();
 
       _user = UserModel(
-        id: "",
-        username: username,
-        email: "",
-        role: "",
+        id: meData?['id']?.toString() ?? '',
+        username: meData?['username']?.toString() ?? username,
+        email: meData?['email']?.toString() ?? '',
+        role: meData?['role']?.toString() ?? '',
         accessToken: token,
       );
     } catch (e) {
@@ -44,18 +44,20 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<void> loadUserFromStorage() async {
     final token = await _storage.getToken();
+    if (token == null) return;
 
-    if (token != null) {
-      _user = UserModel(
-        id: "",
-        username: "",
-        email: "",
-        role: "",
-        accessToken: token,
-      );
+    // tenta buscar dados reais; fallback para modelo vazio se offline
+    final meData = await _authService.fetchMe();
 
-      notifyListeners();
-    }
+    _user = UserModel(
+      id: meData?['id']?.toString() ?? '',
+      username: meData?['username']?.toString() ?? '',
+      email: meData?['email']?.toString() ?? '',
+      role: meData?['role']?.toString() ?? '',
+      accessToken: token,
+    );
+
+    notifyListeners();
   }
 
   Future<void> logout() async {

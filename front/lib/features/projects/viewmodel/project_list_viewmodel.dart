@@ -13,6 +13,9 @@ class ProjectListViewModel extends ChangeNotifier {
 
   Set<String> vagasCandidatadas = {};
 
+  // controla qual requisição de vagas é a mais recente para descartar respostas antigas
+  int _vagasLoadSeq = 0;
+
   final CandidaturaController _candidaturaController = CandidaturaController();
 
   Future<void> carregarProjetosPublicados() async {
@@ -55,18 +58,23 @@ class ProjectListViewModel extends ChangeNotifier {
     final index = projetoAtual;
     if (index < 0 || index >= projetos.length) return;
 
+    final seq = ++_vagasLoadSeq;
     loadingVagas = true;
+    vagasDoProjeto = [];
     notifyListeners();
 
+    List<Position> vagas = [];
     try {
-      final String projetoId = projetos[index].id;
-      vagasDoProjeto = await ProjectController.buscarVagasPorProjeto(projetoId);
-    } catch (e) {
-      vagasDoProjeto = [];
-    } finally {
-      loadingVagas = false;
-      notifyListeners();
+      vagas = await ProjectController.buscarVagasPorProjeto(projetos[index].id);
+    } catch (_) {
+      vagas = [];
     }
+
+    // descarta resposta se uma requisição mais recente já foi iniciada
+    if (seq != _vagasLoadSeq) return;
+    vagasDoProjeto = vagas;
+    loadingVagas = false;
+    notifyListeners();
   }
 
   Future<void> setProjetoAtual(int index) async {
@@ -116,7 +124,6 @@ class ProjectListViewModel extends ChangeNotifier {
 
       return sucesso;
     } catch (e) {
-      print("Erro ao candidatar: $e");
       rethrow;
     }
   }
@@ -126,9 +133,7 @@ class ProjectListViewModel extends ChangeNotifier {
       final candidaturas = await _candidaturaController.minhasCandidaturasCompletas();
       vagasCandidatadas = candidaturas.map((c) => c.vagaId).toSet();
       notifyListeners();
-    } catch (e) {
-      print("Erro ao carregar candidaturas: $e");
-    }
+    } catch (_) {}
   }
 
   bool jaSeCandidatou(String vagaId) {

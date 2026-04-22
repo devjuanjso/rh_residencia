@@ -87,44 +87,88 @@ class _ProfilePageState extends State<ProfilePage> {
     final profile = viewModel.profile;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meu perfil'),
-        actions: [
-          TextButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const EditProfilePage()),
-            ),
-            icon: const Icon(Icons.edit, size: 16),
-            label: const Text('Editar'),
-          ),
-          IconButton(
-            onPressed: () => _confirmLogout(context),
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sair',
-          ),
-        ],
-      ),
-      body: viewModel.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : profile == null
-              ? const Center(child: Text('Erro ao carregar perfil'))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(profile),
-                      const SizedBox(height: 24),
-                      _buildInfoCard(profile),
-                      const SizedBox(height: 16),
-                      _buildHabilidadesCard(profile),
-                      const SizedBox(height: 16),
-                      _buildFormacaoCard(profile),
-                      const SizedBox(height: 24),
-                    ],
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: viewModel.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : profile == null
+                ? const Center(child: Text('Erro ao carregar perfil'))
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Meu perfil',
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1A1A2E),
+                                letterSpacing: -0.4,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                _headerButton(
+                                  icon: Icons.edit_outlined,
+                                  label: 'Editar',
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const EditProfilePage()),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                _headerButton(
+                                  icon: Icons.logout_rounded,
+                                  label: 'Sair',
+                                  onTap: () => _confirmLogout(context),
+                                  danger: true,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        _buildHeader(profile),
+                        const SizedBox(height: 24),
+                        _buildInfoCard(profile),
+                        const SizedBox(height: 16),
+                        _buildHabilidadesCard(profile),
+                        const SizedBox(height: 16),
+                        _buildFormacaoCard(profile),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
-                ),
+      ),
+    );
+  }
+
+  Widget _headerButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool danger = false,
+  }) {
+    final color = danger ? Colors.red.shade400 : const Color(0xFF6B21A8);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 15, color: color),
+            const SizedBox(width: 5),
+            Text(label, style: TextStyle(fontSize: 13, color: color, fontWeight: FontWeight.w500)),
+          ],
+        ),
+      ),
     );
   }
 

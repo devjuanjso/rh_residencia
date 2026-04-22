@@ -31,7 +31,7 @@ class VagaViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, url_path="por-projeto/(?P<projeto_id>[^/.]+)")
     def por_projeto(self, request, projeto_id=None):
-        vagas = Vaga.objects.filter(projeto_id=projeto_id)
+        vagas = Vaga.objects.filter(projeto_id=projeto_id, encerrada=False)
         serializer = self.get_serializer(vagas, many=True)
         return Response(serializer.data)
 

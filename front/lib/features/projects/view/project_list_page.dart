@@ -95,9 +95,10 @@ class _ProjectListPageState extends State<ProjectListPage> {
         const Text(
           'Vagas para você',
           style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+            fontSize: 26,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A2E),
+            letterSpacing: -0.4,
           ),
         ),
         const SizedBox(height: 6),

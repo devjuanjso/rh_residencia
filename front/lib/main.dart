@@ -90,23 +90,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<PersistentBottomNavBarItem> _navBarsItems() {
+    const purple = Color(0xFF6B21A8);
     return [
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.swipe),
+        icon: const Icon(Icons.explore_rounded),
         title: 'Descobrir',
-        activeColorPrimary: Colors.blue,
+        activeColorPrimary: purple,
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.work),
+        icon: const Icon(Icons.cases_rounded),
         title: 'Projetos',
-        activeColorPrimary: Colors.blue,
+        activeColorPrimary: purple,
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.person),
+        icon: const Icon(Icons.account_circle_rounded),
         title: 'Perfil',
-        activeColorPrimary: Colors.blue,
+        activeColorPrimary: purple,
         inactiveColorPrimary: Colors.grey,
       ),
     ];

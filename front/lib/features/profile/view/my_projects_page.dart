@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/features/auth/viewmodel/auth_viewmodel.dart';
 import 'package:front/features/candidatura/viewmodel/candidatura_viewmodel.dart';
 import 'package:front/features/projects/components/candidatura_card.dart';
 import 'package:provider/provider.dart';
@@ -24,11 +25,30 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
   int _currentPage = 1;
   final int _itemsPerPage = 5;
 
-  final List<String> _filters = ['Todos', 'Publicado', 'Rascunho', 'Encerrado', 'Candidaturas'];
-
   static const Color _purple = Color(0xFF6B21A8);
 
+  static const _filtersGestor = ['Todos', 'Publicado', 'Rascunho', 'Encerrado', 'Candidaturas'];
+  static const _filtersColaborador = ['Candidaturas'];
+
+  bool _podeGerirProjetos(BuildContext context) {
+    final role = context.read<AuthViewModel>().user?.role ?? '';
+    return role == 'ADMIN' || role == 'RH';
+  }
+
+  List<String> _filters(BuildContext context) =>
+      _podeGerirProjetos(context) ? _filtersGestor : _filtersColaborador;
+
   bool get _isCandidaturas => _selectedFilter == 'Candidaturas';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_podeGerirProjetos(context)) {
+        setState(() => _selectedFilter = 'Candidaturas');
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -65,11 +85,25 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     return filtered.sublist(start, end);
   }
 
-  Future<void> _onRefresh(ProjectListViewModel projectVm, CandidaturaListViewModel candidaturaVm) async {
-    await Future.wait([
-      projectVm.carregarMeusProjetos(),
-      candidaturaVm.carregar(),
-    ]);
+  Future<void> _onRefresh(
+    BuildContext context,
+    ProjectListViewModel projectVm,
+    CandidaturaListViewModel candidaturaVm,
+  ) async {
+    try {
+      final futures = [candidaturaVm.carregar()];
+      if (_podeGerirProjetos(context)) futures.add(projectVm.carregarMeusProjetos());
+      await Future.wait(futures);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao atualizar. Tente novamente.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -113,14 +147,14 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                   const SizedBox(height: 16),
                   _buildSearchBar(candidaturaVm),
                   const SizedBox(height: 12),
-                  _buildFilterChips(),
+                  _buildFilterChips(context),
                   const SizedBox(height: 16),
                   const Divider(height: 1),
                   const SizedBox(height: 8),
                   Expanded(
                     child: RefreshIndicator(
                       color: _purple,
-                      onRefresh: () => _onRefresh(projectVm, candidaturaVm),
+                      onRefresh: () => _onRefresh(context, projectVm, candidaturaVm),
                       child: _isCandidaturas
                           ? _buildCandidaturasList(candidaturaVm, paginatedCandidaturas, filteredCandidaturas)
                           : _buildProjetosList(projectVm, filtered, paginatedProjetos),
@@ -137,6 +171,7 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
   }
 
   Widget _buildHeader(BuildContext context, ProjectListViewModel projectVm) {
+    final gestor = _podeGerirProjetos(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Row(
@@ -161,13 +196,18 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                     ),
                   ),
                 ),
-              const Text(
-                'Meus projetos',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black87),
+              Text(
+                gestor ? 'Meus projetos' : 'Minhas candidaturas',
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A2E),
+                  letterSpacing: -0.4,
+                ),
               ),
             ],
           ),
-          if (!_isCandidaturas)
+          if (gestor && !_isCandidaturas)
             ElevatedButton.icon(
               onPressed: () => _navigateToAddProject(context, projectVm),
               icon: const Icon(Icons.add, size: 18),
@@ -213,13 +253,14 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     );
   }
 
-  Widget _buildFilterChips() {
+  Widget _buildFilterChips(BuildContext context) {
+    final filters = _filters(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: _filters.map((f) {
+        children: filters.map((f) {
           final selected = _selectedFilter == f;
           return GestureDetector(
             onTap: () => setState(() {
@@ -269,6 +310,23 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
     List<Candidatura> filtered,
   ) {
     if (vm.loading) return const Center(child: CircularProgressIndicator());
+    if (vm.erro != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+            const SizedBox(height: 12),
+            Text(vm.erro!, style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: vm.carregar,
+              child: const Text('Tentar novamente'),
+            ),
+          ],
+        ),
+      );
+    }
     if (vm.candidaturas.isEmpty) return _buildEmpty(isCandidatura: true);
     if (filtered.isEmpty) return _buildNenhumEncontrado();
 
@@ -401,7 +459,7 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
         child: Image.network(
           projeto.imagem!,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) =>
+          errorBuilder: (context, error, stack) =>
               ProjectDefaultCover(tipo: projeto.tipo, height: 160),
         ),
       );

@@ -1,7 +1,6 @@
 import uuid
 from django.db import models
 from accounts.models import User
-from colaboradores.models import Colaborador
 from vagas.models import Vaga
 
 class Candidatura(models.Model):

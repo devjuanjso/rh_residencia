@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
+import '../../../core/services/api_client.dart';
 import '../../../core/services/http_service.dart';
 import '../../../core/services/secure_storage_service.dart';
 import '../../position/model/position_model.dart';
@@ -10,13 +11,6 @@ import '../model/project_model.dart';
 class ProjectController {
 
   static final SecureStorageService _storage = SecureStorageService();
-
-  static Future<Map<String, String>> _authHeaders() async {
-    final token = await _storage.getToken();
-    return {
-      "Authorization": "Bearer $token",
-    };
-  }
 
   // Cria um novo projeto
   static Future<String?> criarProjeto({
@@ -66,20 +60,12 @@ class ProjectController {
   // Busca um projeto específico pelo ID
   static Future<Project?> buscarProjetoPorId(String projetoId) async {
     try {
-      final headers = await _authHeaders();
-      final uri = Uri.parse('${Config.baseUrl}/projetos/$projetoId/');
-
-      final response = await http.get(uri, headers: headers);
-
+      final response = await ApiClient.get('/projetos/$projetoId/');
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return Project.fromJson(data);
+        return Project.fromJson(jsonDecode(response.body));
       }
-
       return null;
-
     } catch (e) {
-      print('Erro ao buscar projeto: $e');
       return null;
     }
   }
@@ -203,14 +189,9 @@ class ProjectController {
   // Remove um projeto
   static Future<bool> excluirProjeto(String projetoId) async {
     try {
-      final headers = await _authHeaders();
-      final uri = Uri.parse('${Config.baseUrl}/projetos/$projetoId/');
-
-      final response = await http.delete(uri, headers: headers);
+      final response = await ApiClient.delete('/projetos/$projetoId/');
       return response.statusCode == 204 || response.statusCode == 200;
-
     } catch (e) {
-      print('Erro ao excluir projeto: $e');
       return false;
     }
   }
@@ -218,20 +199,13 @@ class ProjectController {
   // Lista projetos publicados
   static Future<List<Project>> buscarProjetosPublicados() async {
     try {
-      final headers = await _authHeaders();
-      final uri = Uri.parse('${Config.baseUrl}/projetos/publicados/');
-
-      final response = await http.get(uri, headers: headers);
-
+      final response = await ApiClient.get('/projetos/publicados/');
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         return data.map((e) => Project.fromJson(e)).toList();
       }
-
       return [];
-
     } catch (e) {
-      print('Erro ao buscar projetos publicados: $e');
       return [];
     }
   }
@@ -239,41 +213,28 @@ class ProjectController {
   // Lista projetos criados pelo usuário logado
   static Future<List<Project>> buscarMeusProjetos() async {
     try {
-      final headers = await _authHeaders();
-      final uri = Uri.parse('${Config.baseUrl}/projetos/meus/');
-
-      final response = await http.get(uri, headers: headers);
-
+      final response = await ApiClient.get('/projetos/meus/');
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         return data.map((e) => Project.fromJson(e)).toList();
       }
-
       return [];
-
     } catch (e) {
-      print('Erro ao buscar meus projetos: $e');
       return [];
     }
   }
 
-  // Lista vagas associadas a um projeto
+  // Lista vagas ativas associadas a um projeto
   static Future<List<Position>> buscarVagasPorProjeto(String projetoId) async {
     try {
-      final headers = await _authHeaders();
-      final uri = Uri.parse('${Config.baseUrl}/vagas/por-projeto/$projetoId/');
-
-      final response = await http.get(uri, headers: headers);
-
+      final response =
+          await ApiClient.get('/vagas/por-projeto/$projetoId/');
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         return data.map((e) => Position.fromJson(e)).toList();
       }
-
       return [];
-
     } catch (e) {
-      print('Erro ao buscar vagas: $e');
       return [];
     }
   }

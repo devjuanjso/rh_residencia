@@ -29,3 +29,14 @@ class CandidaturaSerializer(serializers.ModelSerializer):
             )
 
         return attrs
+
+
+class CandidaturaComUsuarioSerializer(CandidaturaSerializer):
+    usuario_id   = serializers.UUIDField(source="usuario.id", read_only=True)
+    usuario_nome = serializers.SerializerMethodField()
+
+    class Meta(CandidaturaSerializer.Meta):
+        fields = CandidaturaSerializer.Meta.fields + ["usuario_id", "usuario_nome"]
+
+    def get_usuario_nome(self, obj):
+        return obj.usuario.get_full_name() or obj.usuario.username

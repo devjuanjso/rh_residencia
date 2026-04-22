@@ -7,6 +7,8 @@ class Candidatura {
   final String projetoId;
   final String projetoNome;
   final String? projetoImagem;
+  final String? usuarioId;
+  final String? usuarioNome;
 
   Candidatura({
     required this.id,
@@ -17,6 +19,8 @@ class Candidatura {
     required this.projetoId,
     required this.projetoNome,
     this.projetoImagem,
+    this.usuarioId,
+    this.usuarioNome,
   });
 
   factory Candidatura.fromJson(Map<String, dynamic> json) => Candidatura(
@@ -28,5 +32,7 @@ class Candidatura {
         projetoId: json['projeto_id'] ?? '',
         projetoNome: json['projeto_nome'] ?? '',
         projetoImagem: json['projeto_imagem'],
+        usuarioId: json['usuario_id']?.toString(),
+        usuarioNome: json['usuario_nome']?.toString(),
       );
 }

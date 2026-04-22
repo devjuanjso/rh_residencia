@@ -3,6 +3,11 @@ import 'package:front/features/auth/controller/auth_controller.dart';
 import 'package:front/features/auth/viewmodel/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 
+const _purple = Color(0xFF6B21A8);
+const _fieldBorder = Color(0xFFE2E8F0);
+const _textPrimary = Color(0xFF1A1A2E);
+const _textSecondary = Color(0xFF64748B);
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -10,94 +15,105 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
-  // Cores Venturus
-  static const _bgColor      = Color(0xFF0D0B14);
-  static const _surfaceColor = Color(0xFF130F1E);
-  static const _borderColor  = Color(0xFF2B2240);
-  static const _accentColor  = Color(0xFF7B3FC8);
-  static const _accentLight  = Color(0xFF9B5FE8);
-  static const _textPrimary  = Color(0xFFF0EAFF);
-  static const _textMuted    = Color(0xFF5C5070);
-  static const _textHint     = Color(0xFF2E2446);
-  static const _labelColor   = Color(0xFF7B6A9A);
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnim;
+  late final Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    )..forward();
+    _fadeAnim =
+        CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(_fadeAnim);
+  }
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _fadeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<AuthViewModel>();
-    final controller = LoginController(viewModel);
+    final vm = context.watch<AuthViewModel>();
+    final controller = LoginController(vm);
 
     return Scaffold(
-      backgroundColor: _bgColor,
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 26),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 42),
-              _buildLogo(),
-              const SizedBox(height: 32),
-              _buildHeadline(),
-              const SizedBox(height: 30),
-              _buildField(
-                label: 'USUÁRIO',
-                controller: _usernameController,
-                hint: 'seu@venturus.org.br',
-                suffixIcon: Icons.person_outline_rounded,
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: SlideTransition(
+            position: _slideAnim,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 56),
+                  _buildBrand(),
+                  const SizedBox(height: 40),
+                  _buildHeadline(),
+                  const SizedBox(height: 32),
+                  _buildField(
+                    label: 'Usuário',
+                    controller: _usernameController,
+                    hint: 'seu.nome',
+                    icon: Icons.person_outline_rounded,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildPasswordField(),
+                  const SizedBox(height: 12),
+                  _buildForgotPassword(),
+                  const SizedBox(height: 28),
+                  _buildLoginButton(vm, controller),
+                  const SizedBox(height: 36),
+                  _buildFooter(),
+                  const SizedBox(height: 32),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildField(
-                label: 'SENHA',
-                controller: _passwordController,
-                hint: '••••••••',
-                obscure: _obscurePassword,
-                suffixIcon: _obscurePassword
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                onIconTap: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
-              ),
-              const SizedBox(height: 10),
-              _buildForgotPassword(),
-              const SizedBox(height: 26),
-              _buildLoginButton(viewModel, controller, context),
-              const SizedBox(height: 32),
-              _buildFooter(context),
-              const SizedBox(height: 32),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildLogo() {
+  Widget _buildBrand() {
     return Row(
       children: [
-        CustomPaint(
-          size: const Size(34, 34),
-          painter: _HexLogoPainter(),
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: _purple,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.hub_rounded, color: Colors.white, size: 22),
         ),
         const SizedBox(width: 10),
         const Text(
-          'venturus',
+          'Venturus',
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFFE8DEFF),
-            letterSpacing: 0.3,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: _textPrimary,
+            letterSpacing: -0.3,
           ),
         ),
       ],
@@ -107,22 +123,23 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildHeadline() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text(
+      children: [
+        const Text(
           'Bem-vindo\nde volta.',
           style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w500,
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
             color: _textPrimary,
-            height: 1.25,
+            height: 1.2,
+            letterSpacing: -0.5,
           ),
         ),
-        SizedBox(height: 6),
-        Text(
+        const SizedBox(height: 8),
+        const Text(
           'Acesse sua conta para continuar.',
           style: TextStyle(
-            fontSize: 13,
-            color: _textMuted,
+            fontSize: 14,
+            color: _textSecondary,
             height: 1.5,
           ),
         ),
@@ -134,9 +151,7 @@ class _LoginPageState extends State<LoginPage> {
     required String label,
     required TextEditingController controller,
     required String hint,
-    required IconData suffixIcon,
-    bool obscure = false,
-    VoidCallback? onIconTap,
+    required IconData icon,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,42 +159,83 @@ class _LoginPageState extends State<LoginPage> {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 10,
-            letterSpacing: 1.0,
-            color: _labelColor,
+            fontSize: 13,
             fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 7),
-        TextField(
-          controller: controller,
-          obscureText: obscure,
-          style: const TextStyle(
-            fontSize: 14,
             color: _textPrimary,
           ),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: controller,
+          style: const TextStyle(fontSize: 14, color: _textPrimary),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: _textHint, fontSize: 14),
+            hintStyle:
+                const TextStyle(color: Color(0xFFBBBBBB), fontSize: 14),
+            prefixIcon: Icon(icon, size: 18, color: _textSecondary),
             filled: true,
-            fillColor: _surfaceColor,
+            fillColor: Colors.white,
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: _borderColor),
-            ),
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: _borderColor),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: _fieldBorder, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: _accentColor, width: 1.5),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: _purple, width: 1.5),
             ),
-            suffixIcon: GestureDetector(
-              onTap: onIconTap,
-              child: Icon(suffixIcon, size: 16, color: _textHint),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Senha',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: _textPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _passwordController,
+          obscureText: _obscurePassword,
+          style: const TextStyle(fontSize: 14, color: _textPrimary),
+          decoration: InputDecoration(
+            hintText: '••••••••',
+            hintStyle:
+                const TextStyle(color: Color(0xFFBBBBBB), fontSize: 14),
+            prefixIcon: const Icon(Icons.lock_outline_rounded,
+                size: 18, color: _textSecondary),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                size: 18,
+                color: _textSecondary,
+              ),
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: _fieldBorder, width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: _purple, width: 1.5),
             ),
           ),
         ),
@@ -191,222 +247,141 @@ class _LoginPageState extends State<LoginPage> {
     return Align(
       alignment: Alignment.centerRight,
       child: GestureDetector(
-        onTap: () {},
+        onTap: () => showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Recuperar senha',
+                style: TextStyle(fontWeight: FontWeight.w600)),
+            content: const Text(
+              'Entre em contato com o RH para redefinir sua senha.',
+              style: TextStyle(color: _textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child:
+                    const Text('Entendido', style: TextStyle(color: _purple)),
+              ),
+            ],
+          ),
+        ),
         child: const Text(
           'Esqueci minha senha',
           style: TextStyle(
-            fontSize: 12,
-            color: Color(0xFF6645A8),
+            fontSize: 13,
+            color: _purple,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildLoginButton(
-    AuthViewModel viewModel,
-    LoginController controller,
-    BuildContext context,
-  ) {
+  Widget _buildLoginButton(AuthViewModel vm, LoginController controller) {
     return SizedBox(
       width: double.infinity,
       height: 50,
-      child: viewModel.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                color: _accentLight,
-                strokeWidth: 2,
-              ),
-            )
-          : ElevatedButton(
-              onPressed: () async {
-                await controller.handleLogin(
-                  _usernameController.text,
-                  _passwordController.text,
-                );
-                if (viewModel.isAuthenticated && context.mounted) {
-                  Navigator.pushReplacementNamed(context, '/home');
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _accentColor,
-                foregroundColor: const Color(0xFFF5EFFF),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: vm.isLoading
+            ? Container(
+                key: const ValueKey('loading'),
+                decoration: BoxDecoration(
+                  color: _purple,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                elevation: 0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Entrar',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
+                child: const Center(
+                  child: SizedBox(
                     width: 20,
                     height: 20,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 12,
-                      color: Colors.white70,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
                     ),
                   ),
-                ],
-              ),
-            ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    return Center(
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(fontSize: 12, color: Color(0xFF3D3058)),
-          children: [
-            const TextSpan(text: 'Não tem conta? '),
-            WidgetSpan(
-              child: GestureDetector(
-                onTap: () => Navigator.pushNamed(context, '/register'),
+                ),
+              )
+            : ElevatedButton(
+                key: const ValueKey('button'),
+                onPressed: () => _handleLogin(vm, controller),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _purple,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 child: const Text(
-                  'Fale com o RH',
+                  'Entrar',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF9B6FD4),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
-}
 
-// Painter do logo hexagonal do Venturus
-class _HexLogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
+  Future<void> _handleLogin(
+      AuthViewModel vm, LoginController controller) async {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
 
-    // Hexágono externo
-    final outerPath = Path();
-    final outerR = size.width / 2 - 1;
-    for (int i = 0; i < 6; i++) {
-      final angle = (i * 60 - 90) * 3.14159 / 180;
-      final x = cx + outerR * cos(angle);
-      final y = cy + outerR * sin(angle);
-      i == 0 ? outerPath.moveTo(x, y) : outerPath.lineTo(x, y);
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Preencha usuário e senha'),
+          backgroundColor: _purple,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
     }
-    outerPath.close();
 
-    canvas.drawPath(
-      outerPath,
-      Paint()
-        ..color = const Color(0xFF7B3FC8).withOpacity(0.12)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawPath(
-      outerPath,
-      Paint()
-        ..color = const Color(0xFF7B3FC8)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6,
-    );
-
-    // Hexágono interno
-    final innerPath = Path();
-    final innerR = size.width / 3.8;
-    for (int i = 0; i < 6; i++) {
-      final angle = (i * 60 - 90) * 3.14159 / 180;
-      final x = cx + innerR * cos(angle);
-      final y = cy + innerR * sin(angle);
-      i == 0 ? innerPath.moveTo(x, y) : innerPath.lineTo(x, y);
+    try {
+      await controller.handleLogin(username, password);
+      // O MaterialApp já troca LoginPage → HomePage automaticamente
+      // quando AuthViewModel.isAuthenticated passa para true.
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
-    innerPath.close();
+  }
 
-    canvas.drawPath(
-      innerPath,
-      Paint()
-        ..color = const Color(0xFF9B5FE8).withOpacity(0.5)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.8,
-    );
-
-    // Ponto central
-    canvas.drawCircle(
-      Offset(cx, cy),
-      2.8,
-      Paint()..color = const Color(0xFF9B5FE8),
-    );
-
-    // Linhas verticais
-    canvas.drawLine(
-      Offset(cx, cy - 2.8),
-      Offset(cx, cy - outerR + 2),
-      Paint()
-        ..color = const Color(0xFF7B3FC8).withOpacity(0.35)
-        ..strokeWidth = 0.8,
-    );
-    canvas.drawLine(
-      Offset(cx, cy + 2.8),
-      Offset(cx, cy + outerR - 2),
-      Paint()
-        ..color = const Color(0xFF7B3FC8).withOpacity(0.35)
-        ..strokeWidth = 0.8,
+  Widget _buildFooter() {
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'Não tem acesso? ',
+            style: TextStyle(fontSize: 13, color: _textSecondary),
+          ),
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(context, '/register'),
+            child: const Text(
+              'Fale com o RH',
+              style: TextStyle(
+                fontSize: 13,
+                color: _purple,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
-
-  double cos(double angle) => _cos(angle);
-  double sin(double angle) => _sin(angle);
-
-  double _cos(double r) {
-    // Taylor approx — use dart:math em produção
-    return _mathCos(r);
-  }
-
-  double _sin(double r) {
-    return _mathSin(r);
-  }
-
-  // chamadas para dart:math
-  static double _mathCos(double r) => _dartCos(r);
-  static double _mathSin(double r) => _dartSin(r);
-  static double _dartCos(double r) {
-    // ignore: avoid_returning_null_for_void
-    return (r == 0)
-        ? 1.0
-        : _computeCos(r);
-  }
-
-  static double _computeCos(double r) {
-    double result = 1, term = 1;
-    for (int i = 1; i <= 10; i++) {
-      term *= -r * r / ((2 * i - 1) * (2 * i));
-      result += term;
-    }
-    return result;
-  }
-
-  static double _dartSin(double r) {
-    double result = r, term = r;
-    for (int i = 1; i <= 10; i++) {
-      term *= -r * r / ((2 * i) * (2 * i + 1));
-      result += term;
-    }
-    return result;
-  }
-
-  @override
-  bool shouldRepaint(_HexLogoPainter oldDelegate) => false;
 }
