@@ -5,48 +5,55 @@ services:
   backend:
     build: ./backend
     container_name: django-backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             gunicorn rh.wsgi:application --bind 0.0.0.0:8000 --workers 2"
     volumes:
-      - ./backend:/app
+      - db_data:/app/db.sqlite3
+      - media_data:/app/media
       - embeddings_cache:/app/recomendacao/ml_models/embeddings_cache
     ports:
       - "8000:8000"
     depends_on:
       - ai-service
+    env_file:
+      - ./backend/.env
     environment:
-      - AI_SERVICE_URL=http://ai-service:8001 
+      - AI_SERVICE_URL=http://ai-service:8001
     networks:
       - rh-net
+    restart: unless-stopped
 
   ai-service:
     build: ./ai-service
     container_name: ai-service
-    command: uvicorn main:app --host 0.0.0.0 --port 8001
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --workers 2
     volumes:
       - embeddings_cache:/app/embeddings_cache
     ports:
       - "8001:8001"
     depends_on:
       ollama-init:
-        condition: service_completed_successfully  
+        condition: service_completed_successfully
     environment:
       - OLLAMA_URL=http://ollama:11434
       - MODELO_TEXTO=gemma3:4b
       - MODELO_EMBEDDINGS=nomic-embed-text
     networks:
       - rh-net
+    restart: unless-stopped
 
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
-    ports:
-      - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
     environment:
       - OLLAMA_INSECURE=1
+    # Ollama não é exposto externamente — só acessível internamente pelos containers
     networks:
       - rh-net
+    restart: unless-stopped
 
   ollama-init:
     image: ollama/ollama:latest
@@ -58,7 +65,7 @@ services:
       - OLLAMA_INSECURE=1
     entrypoint: >
       /bin/sh -c "
-      echo '⏳ Aguardando Ollama iniciar...';
+      echo 'Aguardando Ollama iniciar...';
       until ollama list > /dev/null 2>&1; do
         sleep 2;
       done;
@@ -74,6 +81,8 @@ services:
 volumes:
   ollama_data:
   embeddings_cache:
+  db_data:
+  media_data:
 
 networks:
   rh-net:

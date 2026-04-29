@@ -1,0 +1,52 @@
+services:
+  - type: web
+    name: rh-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /admin/
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rh-db
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "False"
+      # Defina as origens permitidas do frontend no dashboard do Render:
+      # CORS_ALLOWED_ORIGINS=https://seu-app.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      # URL do ai-service após ele ser deployado:
+      # AI_SERVICE_URL=https://rh-ai-service.onrender.com
+      - key: AI_SERVICE_URL
+        sync: false
+
+  - type: web
+    name: rh-ai-service
+    env: docker
+    dockerfilePath: ./ai-service/Dockerfile
+    dockerContext: ./ai-service
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      # Aponte para sua instância Ollama externa (o modelo gemma3:4b
+      # é muito grande para rodar no plano free do Render):
+      - key: OLLAMA_URL
+        sync: false
+      - key: MODELO_TEXTO
+        value: gemma3:4b
+      - key: MODELO_EMBEDDINGS
+        value: nomic-embed-text
+
+databases:
+  - name: rh-db
+    databaseName: rh_residencia
+    user: rh_user
+    plan: free

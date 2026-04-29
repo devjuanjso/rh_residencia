@@ -29,4 +29,7 @@ django-environ==0.11.2
 # CORS (acesso externo)
 django-cors-headers==4.4.0
 
+# Banco de dados PostgreSQL (produção)
+psycopg2-binary==2.9.10
+
 # drf-spectacular==0.29.0 ## Documentação OpenAPI (avaliar necessidade)

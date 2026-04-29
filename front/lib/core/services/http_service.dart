@@ -1,3 +1,4 @@
 class Config {
-  static const String baseUrl = 'http://10.0.2.2:8000';
+  // Troque pelo IP público da sua VM Oracle Cloud após criar o servidor
+  static const String baseUrl = 'http://SEU_IP_ORACLE:8000';
 }
