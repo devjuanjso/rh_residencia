@@ -21,14 +21,6 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 
-_render_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if _render_hostname and _render_hostname not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(_render_hostname)
-
-CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
-if _render_hostname:
-    CSRF_TRUSTED_ORIGINS.append(f'https://{_render_hostname}')
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
