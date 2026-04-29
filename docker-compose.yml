@@ -1,12 +1,10 @@
-version: "3.9"
-
 services:
 
   backend:
     build: ./backend
     container_name: django-backend
     volumes:
-      - db_data:/app/db.sqlite3
+      - db_data:/app/data
       - media_data:/app/media
       - embeddings_cache:/app/recomendacao/ml_models/embeddings_cache
     ports:
