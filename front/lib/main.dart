@@ -4,6 +4,7 @@ import 'package:front/features/profile/view/profile_page.dart';
 import 'package:front/features/profile/viewmodel/profile_viewmodel.dart';
 import 'package:front/features/projects/view/project_list_page.dart';
 import 'package:front/features/projects/viewmodel/project_form_viewmodel.dart';
+import 'package:front/features/splash/view/splash_page.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 
@@ -48,8 +49,15 @@ class RHApp extends StatelessWidget {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _splashDone = false;
 
   @override
   Widget build(BuildContext context) {
@@ -62,10 +70,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-
-      home: auth.isAuthenticated
-          ? const HomePage()
-          : const LoginPage(),
+      home: !_splashDone
+          ? SplashPage(onComplete: () => setState(() => _splashDone = true))
+          : (auth.isAuthenticated ? const HomePage() : const LoginPage()),
     );
   }
 }

@@ -405,13 +405,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
     String? value,
     Function(String?) onChanged,
   ) {
+    final validValues = options.map((e) => e["value"] as String).toSet();
+    final safeValue = (value != null && validValues.contains(value)) ? value : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
         DropdownButtonFormField<String>(
-          value: value,
+          value: safeValue,
           hint: Text('Selecione $label'),
           decoration: InputDecoration(
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

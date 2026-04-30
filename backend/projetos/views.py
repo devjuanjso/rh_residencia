@@ -58,7 +58,7 @@ class ProjetoViewSet(viewsets.ModelViewSet):
             ai_response = http_requests.post(
                 "http://ai-service:8001/projeto/sugerir-pdf",
                 files={"file": (file.name, file.read(), file.content_type or "application/pdf")},
-                timeout=300,
+                timeout=600,
             )
             return Response(ai_response.json(), status=ai_response.status_code)
         except http_requests.exceptions.ConnectionError:
@@ -79,7 +79,7 @@ class ProjetoViewSet(viewsets.ModelViewSet):
             ai_response = http_requests.post(
                 "http://ai-service:8001/projeto/sugerir",
                 json={"descricao": descricao},
-                timeout=300,
+                timeout=600,
             )
             return Response(ai_response.json(), status=ai_response.status_code)
         except http_requests.exceptions.ConnectionError:
