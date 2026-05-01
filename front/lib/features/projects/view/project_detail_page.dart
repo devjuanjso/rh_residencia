@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../../core/components/loading_overlay.dart';
-import '../../../core/layout/empty_state.dart';
-import '../components/project_card.dart';
 import '../components/project_default_cover.dart';
-import '../components/position_list_item.dart';
 import '../../recomendacao/view/candidatos_modal.dart';
 import '../../position/model/position_model.dart';
 import '../../position/view/position_form_page.dart';
-import '../../position/view/position_detail_page.dart';
 import '../../position/controller/position_controller.dart';
 import '../model/project_model.dart';
 import '../controller/project_controller.dart';
@@ -161,26 +155,38 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildAppBar(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildCoverImage(),
-                    _buildProjectInfo(),
-                    const Divider(height: 1),
-                    _buildPositionsSection(),
-                  ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.pop(context, true);
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildAppBar(),
+              Expanded(
+                child: RefreshIndicator(
+                  color: _purple,
+                  onRefresh: _loadPositions,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildCoverImage(),
+                        _buildProjectInfo(),
+                        const Divider(height: 1),
+                        _buildPositionsSection(),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -192,7 +198,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       child: Row(
         children: [
           _CircleButton(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => Navigator.of(context).pop(true),
             child: const Icon(Icons.chevron_left,
                 size: 22, color: Colors.black87),
           ),

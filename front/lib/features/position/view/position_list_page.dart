@@ -52,51 +52,66 @@ class PositionListPage extends StatelessWidget {
     }
 
     if (viewModel.positions.isEmpty) {
-      return EmptyState(
-        icon: Icons.work_outline,
-        title: 'Nenhuma vaga encontrada',
-        description: 'Clique no botão + para criar sua primeira vaga',
-        action: ElevatedButton.icon(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const PositionFormPage(projetoId: ''),
+      return RefreshIndicator(
+        color: Colors.deepPurple,
+        onRefresh: () => viewModel.loadPositions(),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            const SizedBox(height: 80),
+            EmptyState(
+              icon: Icons.work_outline,
+              title: 'Nenhuma vaga encontrada',
+              description: 'Clique no botão + para criar sua primeira vaga',
+              action: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PositionFormPage(projetoId: ''),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Criar vaga'),
               ),
-            );
-          },
-          icon: const Icon(Icons.add),
-          label: const Text('Criar vaga'),
+            ),
+          ],
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: viewModel.positions.length,
-      itemBuilder: (context, index) {
-        final Position vaga = viewModel.positions[index];
-        return PositionCard(
-          position: vaga,
-          onView: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PositionDetailPage(position: vaga),
-              ),
-            );
-          },
-          onEdit: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PositionFormPage(vaga: vaga, projetoId: ''),
-              ),
-            );
-          },
-          onDelete: () => viewModel.removePosition(vaga.id),
-        );
-      },
+    return RefreshIndicator(
+      color: Colors.deepPurple,
+      onRefresh: () => viewModel.loadPositions(),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: viewModel.positions.length,
+        itemBuilder: (context, index) {
+          final Position vaga = viewModel.positions[index];
+          return PositionCard(
+            position: vaga,
+            onView: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PositionDetailPage(position: vaga),
+                ),
+              );
+            },
+            onEdit: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PositionFormPage(vaga: vaga, projetoId: ''),
+                ),
+              );
+            },
+            onDelete: () => viewModel.removePosition(vaga.id),
+          );
+        },
+      ),
     );
   }
 }

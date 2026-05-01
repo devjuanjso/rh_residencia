@@ -4,7 +4,6 @@ import '../../../core/layout/empty_state.dart';
 import '../components/position_list_item.dart';
 import '../model/project_model.dart';
 import '../viewmodel/project_list_viewmodel.dart';
-import '../../position/model/position_model.dart';
 
 class ProjectListPage extends StatefulWidget {
   const ProjectListPage({super.key});
@@ -52,10 +51,20 @@ class _ProjectListPageState extends State<ProjectListPage> {
     }
 
     if (vm.projetos.isEmpty) {
-      return const EmptyState(
-        icon: Icons.work_outline,
-        title: 'Nenhum projeto encontrado',
-        description: 'Crie seu primeiro projeto para começar',
+      return RefreshIndicator(
+        color: Colors.deepPurple,
+        onRefresh: vm.carregarProjetosPublicados,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(height: 120),
+            EmptyState(
+              icon: Icons.work_outline,
+              title: 'Nenhum projeto encontrado',
+              description: 'Arraste para baixo para atualizar',
+            ),
+          ],
+        ),
       );
     }
 
@@ -77,9 +86,14 @@ class _ProjectListPageState extends State<ProjectListPage> {
             },
             itemBuilder: (context, index) {
               final projeto = vm.projetos[index];
-              return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                child: _buildProjectCard(context, vm, projeto),
+              return RefreshIndicator(
+                color: Colors.deepPurple,
+                onRefresh: vm.carregarProjetosPublicados,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  child: _buildProjectCard(context, vm, projeto),
+                ),
               );
             },
           ),

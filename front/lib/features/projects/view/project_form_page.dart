@@ -733,6 +733,7 @@ class _ProjectsFormPageState extends State<ProjectFormPage>
             MaterialPageRoute(
               builder: (_) => ProjectDetailPage(project: projetoCriado),
             ),
+            result: true,
           );
         } else if (context.mounted) {
           Navigator.pop(context, true);

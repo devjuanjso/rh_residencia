@@ -574,7 +574,14 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
   }
 
   void _navigateToProjectDetail(BuildContext context, Project projeto) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => ProjectDetailPage(project: projeto)));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ProjectDetailPage(project: projeto)),
+    ).then((value) {
+      if (context.mounted) {
+        context.read<ProjectListViewModel>().carregarMeusProjetos();
+      }
+    });
   }
 
   void _navigateToEditProject(BuildContext context, Project projeto, ProjectListViewModel vm) {

@@ -44,6 +44,11 @@ services:
       - ollama_data:/root/.ollama
     environment:
       - OLLAMA_INSECURE=1
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_KEEP_ALIVE=10m
+      - OMP_NUM_THREADS=4
     networks:
       - rh-net
     restart: unless-stopped

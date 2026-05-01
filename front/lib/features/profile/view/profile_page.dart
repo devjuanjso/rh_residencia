@@ -18,36 +18,40 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final viewModel = context.read<ProfileViewModel>();
-      final controller = ProfileController(viewModel);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _carregarPerfil();
+    });
+  }
 
-      try {
-        await controller.init();
-      } catch (e) {
-        final msg = e.toString().toLowerCase();
-        final isSessionExpired = msg.contains('expir') ||
-            msg.contains('token_not_valid') ||
-            msg.contains('sessão expirada') ||
-            msg.contains('session');
+  Future<void> _carregarPerfil() async {
+    final viewModel = context.read<ProfileViewModel>();
+    final controller = ProfileController(viewModel);
 
-        if (isSessionExpired) {
-          await context.read<AuthViewModel>().logout();
-          if (context.mounted) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const LoginPage()),
-              (route) => false,
-            );
-          }
-        } else {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Erro ao carregar perfil: $e')),
-            );
-          }
+    try {
+      await controller.init();
+    } catch (e) {
+      final msg = e.toString().toLowerCase();
+      final isSessionExpired = msg.contains('expir') ||
+          msg.contains('token_not_valid') ||
+          msg.contains('sessão expirada') ||
+          msg.contains('session');
+
+      if (isSessionExpired) {
+        await context.read<AuthViewModel>().logout();
+        if (context.mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+            (route) => false,
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erro ao carregar perfil: $e')),
+          );
         }
       }
-    });
+    }
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
@@ -89,59 +93,73 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: viewModel.isLoading
+        child: viewModel.isLoading && profile == null
             ? const Center(child: CircularProgressIndicator())
-            : profile == null
-                ? const Center(child: Text('Erro ao carregar perfil'))
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            : RefreshIndicator(
+                color: const Color(0xFF6B21A8),
+                onRefresh: _carregarPerfil,
+                child: profile == null
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 200),
+                          Center(child: Text('Erro ao carregar perfil')),
+                        ],
+                      )
+                    : SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                        child: Column(
                           children: [
-                            const Text(
-                              'Meu perfil',
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1A1A2E),
-                                letterSpacing: -0.4,
-                              ),
-                            ),
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _headerButton(
-                                  icon: Icons.edit_outlined,
-                                  label: 'Editar',
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const EditProfilePage()),
+                                const Text(
+                                  'Meu perfil',
+                                  style: TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1A1A2E),
+                                    letterSpacing: -0.4,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                _headerButton(
-                                  icon: Icons.logout_rounded,
-                                  label: 'Sair',
-                                  onTap: () => _confirmLogout(context),
-                                  danger: true,
+                                Row(
+                                  children: [
+                                    _headerButton(
+                                      icon: Icons.edit_outlined,
+                                      label: 'Editar',
+                                      onTap: () async {
+                                        await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => const EditProfilePage()),
+                                        );
+                                        if (mounted) await _carregarPerfil();
+                                      },
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _headerButton(
+                                      icon: Icons.logout_rounded,
+                                      label: 'Sair',
+                                      onTap: () => _confirmLogout(context),
+                                      danger: true,
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 20),
+                            _buildHeader(profile),
+                            const SizedBox(height: 24),
+                            _buildInfoCard(profile),
+                            const SizedBox(height: 16),
+                            _buildHabilidadesCard(profile),
+                            const SizedBox(height: 16),
+                            _buildFormacaoCard(profile),
+                            const SizedBox(height: 24),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        _buildHeader(profile),
-                        const SizedBox(height: 24),
-                        _buildInfoCard(profile),
-                        const SizedBox(height: 16),
-                        _buildHabilidadesCard(profile),
-                        const SizedBox(height: 16),
-                        _buildFormacaoCard(profile),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
+                      ),
+              ),
       ),
     );
   }
