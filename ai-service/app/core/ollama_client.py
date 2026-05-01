@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
-MODELO_TEXTO = os.getenv("MODELO_TEXTO", "gemma3:1b")
+MODELO_TEXTO = os.getenv("MODELO_TEXTO", "gemma3:12b")
 MODELO_EMBEDDINGS = os.getenv("MODELO_EMBEDDINGS", "nomic-embed-text")
 
 
