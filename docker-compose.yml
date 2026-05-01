@@ -31,7 +31,7 @@ services:
         condition: service_completed_successfully
     environment:
       - OLLAMA_URL=http://ollama:11434
-      - MODELO_TEXTO=gemma3:12b
+      - MODELO_TEXTO=gemma3:4b
       - MODELO_EMBEDDINGS=nomic-embed-text
     networks:
       - rh-net
@@ -48,13 +48,6 @@ services:
       - OLLAMA_NUM_PARALLEL=1
       - OLLAMA_MAX_LOADED_MODELS=1
       - OLLAMA_KEEP_ALIVE=10m
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
     networks:
       - rh-net
     restart: unless-stopped
@@ -73,8 +66,8 @@ services:
       until ollama list > /dev/null 2>&1; do
         sleep 2;
       done;
-      echo 'Baixando gemma3:12b...';
-      ollama pull gemma3:12b;
+      echo 'Baixando gemma3:4b...';
+      ollama pull gemma3:4b;
       echo 'Baixando nomic-embed-text...';
       ollama pull nomic-embed-text;
       echo 'Modelos prontos!';

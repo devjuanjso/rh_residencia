@@ -1,0 +1,28 @@
+services:
+
+  ai-service:
+    environment:
+      - MODELO_TEXTO=gemma3:12b
+
+  ollama:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  ollama-init:
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Aguardando Ollama iniciar...';
+      until ollama list > /dev/null 2>&1; do
+        sleep 2;
+      done;
+      echo 'Baixando gemma3:12b...';
+      ollama pull gemma3:12b;
+      echo 'Baixando nomic-embed-text...';
+      ollama pull nomic-embed-text;
+      echo 'Modelos prontos!';
+      "
