@@ -1,6 +1,6 @@
 import json
 import re
-from core.ollama_client import gerar_resposta
+from core.gemini_client import gerar_resposta
 
 _PROMPT_SUGESTAO = """Você é um consultor especializado em estruturar projetos de inovação e tecnologia.
 
