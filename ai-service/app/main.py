@@ -5,7 +5,7 @@ import tempfile
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from pydantic import BaseModel
 
-from core.gemini_client import gerar_embedding
+from core.llm_client import gerar_embedding
 from pdf_reader import (
     extrair_texto_pdf,
     extrair_imagens_pdf,

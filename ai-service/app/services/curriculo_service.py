@@ -1,6 +1,6 @@
 import json
 import re
-from core.gemini_client import gerar_resposta
+from core.llm_client import gerar_resposta
 
 _PROMPT_EXTRACAO = """Você é um extrator especializado em currículos profissionais.
 

@@ -1,7 +1,7 @@
 import numpy as np
 import hashlib
 import os
-from core.gemini_client import gerar_embedding
+from core.llm_client import gerar_embedding
 
 CACHE_DIR = "/app/embeddings_cache"
 
