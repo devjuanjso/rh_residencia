@@ -156,19 +156,21 @@ class PositionFormViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> salvarVaga(BuildContext context) async {
+  Future<bool> salvarVaga(BuildContext context) async {
     final titulo = _tituloController.text.trim();
 
     if (_projetoId == null || titulo.isEmpty) {
       _snack(context, 'Preencha todos os campos obrigatórios');
-      return;
+      return false;
     }
 
+    final wasEdit = isEdit;
     _loading = true;
     notifyListeners();
 
+    bool sucesso = false;
     try {
-      if (isEdit) {
+      if (wasEdit) {
         await PositionController.update(
           id: _positionId!,
           projetoId: _projetoId!,
@@ -195,10 +197,10 @@ class PositionFormViewModel extends ChangeNotifier {
         );
       }
 
-      _limparFormulario();
+      limparFormulario();
+      sucesso = true;
       if (context.mounted) {
-        _snack(context, isEdit ? 'Vaga atualizada!' : 'Vaga criada!');
-        Navigator.pop(context, true);
+        _snack(context, wasEdit ? 'Vaga atualizada!' : 'Vaga criada!');
       }
     } catch (e, stack) {
       debugPrint('Erro ao salvar vaga: $e');
@@ -208,13 +210,14 @@ class PositionFormViewModel extends ChangeNotifier {
 
     _loading = false;
     notifyListeners();
+    return sucesso;
   }
 
   void _snack(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  void _limparFormulario() {
+  void limparFormulario() {
     _positionId = null;
     if (!_projetoFixo) _projetoId = null;
     _tituloController.clear();
@@ -225,6 +228,7 @@ class PositionFormViewModel extends ChangeNotifier {
     _certificacoesRequeridas.clear();
     _senioridade = null;
     _area = null;
+    notifyListeners();
   }
 
   @override

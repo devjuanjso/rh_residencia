@@ -182,7 +182,14 @@ class _PositionFormPageState extends State<PositionFormPage> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton.icon(
-                    onPressed: vm.loading ? null : () => vm.salvarVaga(context),
+                    onPressed: vm.loading
+                        ? null
+                        : () async {
+                            final ok = await vm.salvarVaga(context);
+                            if (ok && context.mounted) {
+                              Navigator.pop(context, true);
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _purple,
                       foregroundColor: Colors.white,

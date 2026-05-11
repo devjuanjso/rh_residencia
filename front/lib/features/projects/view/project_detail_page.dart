@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../components/project_default_cover.dart';
 import '../../recomendacao/view/candidatos_modal.dart';
+import '../../position/components/inline_position_form.dart';
 import '../../position/model/position_model.dart';
-import '../../position/view/position_form_page.dart';
 import '../../position/controller/position_controller.dart';
 import '../model/project_model.dart';
 import '../controller/project_controller.dart';
@@ -18,6 +18,8 @@ class ProjectDetailPage extends StatefulWidget {
 
 class _ProjectDetailPageState extends State<ProjectDetailPage> {
   final List<Position> _positions = [];
+  final GlobalKey<InlinePositionFormState> _formKey =
+      GlobalKey<InlinePositionFormState>();
 
   bool _isLoading = false;
   bool _isTogglingStatus = false;
@@ -155,38 +157,31 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        Navigator.pop(context, true);
-      },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(),
-              Expanded(
-                child: RefreshIndicator(
-                  color: _purple,
-                  onRefresh: _loadPositions,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildCoverImage(),
-                        _buildProjectInfo(),
-                        const Divider(height: 1),
-                        _buildPositionsSection(),
-                      ],
-                    ),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildAppBar(),
+            Expanded(
+              child: RefreshIndicator(
+                color: _purple,
+                onRefresh: _loadPositions,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildCoverImage(),
+                      _buildProjectInfo(),
+                      const Divider(height: 1),
+                      _buildPositionsSection(),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -212,17 +207,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                   color: Colors.black87),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: _handleAddPosition,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration:
-                  const BoxDecoration(color: _purple, shape: BoxShape.circle),
-              child: const Icon(Icons.add, color: Colors.white, size: 20),
             ),
           ),
         ],
@@ -497,6 +481,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   }
 
   Widget _buildPositionsSection() {
+    final hasPositions = !_isLoading && _positions.isNotEmpty;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       child: Column(
@@ -512,7 +497,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     fontWeight: FontWeight.bold,
                     color: Colors.black87),
               ),
-              if (!_isLoading && _positions.isNotEmpty)
+              if (hasPositions)
                 Text(
                   '${_positions.length} ${_positions.length == 1 ? 'vaga' : 'vagas'}',
                   style: TextStyle(fontSize: 13, color: Colors.grey[500]),
@@ -520,6 +505,14 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             ],
           ),
           const SizedBox(height: 16),
+          if (!_isLoading && _errorMessage.isEmpty)
+            InlinePositionForm(
+              key: _formKey,
+              projetoId: widget.project.id,
+              projetoNome: widget.project.nome,
+              keepOpen: _positions.isEmpty,
+              onSaved: _loadPositions,
+            ),
           _buildPositionsContent(),
         ],
       ),
@@ -571,40 +564,22 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   }
 
   Widget _buildEmptyState() {
-    return SizedBox(
-      height: 300,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.work_outline, size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 12),
-            Text('Nenhuma vaga disponivel',
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[500])),
-            const SizedBox(height: 6),
-            Text('Adicione a primeira vaga para este projeto',
-                style: TextStyle(fontSize: 13, color: Colors.grey[400]),
-                textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _handleAddPosition,
-              icon: const Icon(Icons.add, size: 16),
-              label: const Text('Criar vaga'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _purple,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24)),
-                elevation: 0,
-              ),
-            ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        children: [
+          Icon(Icons.work_outline, size: 48, color: Colors.grey[300]),
+          const SizedBox(height: 8),
+          Text('Nenhuma vaga cadastrada',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[500])),
+          const SizedBox(height: 4),
+          Text('Preencha o formulario acima para adicionar a primeira',
+              style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+              textAlign: TextAlign.center),
+        ],
       ),
     );
   }
@@ -685,33 +660,12 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     );
   }
 
-  Future<void> _handleAddPosition() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PositionFormPage(
-            projetoId: widget.project.id,
-            projetoNome: widget.project.nome),
-      ),
-    );
-    if (result == true && mounted) await _loadPositions();
-  }
-
   void _handleViewDetails(Position position) {
     showCandidatosModal(context, position.id);
   }
 
-  Future<void> _handleEditPosition(Position position) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PositionFormPage(
-            vaga: position,
-            projetoId: widget.project.id,
-            projetoNome: widget.project.nome),
-      ),
-    );
-    if (result == true && mounted) await _loadPositions();
+  void _handleEditPosition(Position position) {
+    _formKey.currentState?.startEdit(position);
   }
 
   // Converte o valor do campo tipo para um label legivel
