@@ -1,0 +1,61 @@
+workflows:
+  ios-unsigned:
+    name: iOS Build (unsigned)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Flutter pub get
+        script: |
+          cd front
+          flutter pub get
+      - name: Pod install
+        script: |
+          cd front/ios
+          pod install
+      - name: Build iOS (no code signing)
+        script: |
+          cd front
+          flutter build ios --release --no-codesign
+    artifacts:
+      - front/build/ios/iphoneos/Runner.app
+      - front/build/ios/iphoneos/*.app
+
+  # Use este workflow só depois de ter a conta Apple Developer (US$ 99/ano)
+  # e o code signing configurado na interface do Codemagic.
+  ios-release:
+    name: iOS Build (signed / App Store)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: codemagic
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.example.front
+    scripts:
+      - name: Flutter pub get
+        script: |
+          cd front
+          flutter pub get
+      - name: Set up code signing
+        script: |
+          cd front
+          xcode-project use-profiles
+      - name: Pod install
+        script: |
+          cd front/ios
+          pod install
+      - name: Build IPA
+        script: |
+          cd front
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - front/build/ios/ipa/*.ipa
