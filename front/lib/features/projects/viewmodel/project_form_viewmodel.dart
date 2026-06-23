@@ -8,6 +8,13 @@ class ProjectFormViewModel extends ChangeNotifier {
   final nomeController = TextEditingController();
   final descricaoController = TextEditingController();
 
+  ProjectFormViewModel() {
+    // Reavalia `isValid` (e reabilita o botão Criar/Atualizar) enquanto o
+    // usuário digita nome/descrição.
+    nomeController.addListener(_safeNotifyListeners);
+    descricaoController.addListener(_safeNotifyListeners);
+  }
+
   File? imagem;
   bool loading = false;
   String? projetoId;
@@ -181,10 +188,10 @@ class ProjectFormViewModel extends ChangeNotifier {
         );
       }
 
-      loading = false;
-      _safeNotifyListeners();
-
-          if (projetoIdCriado != null && projetoId == null && vagasSelecionadas.isNotEmpty) {
+      // Cria as vagas sugeridas pela IA antes de liberar o loading, para que o
+      // spinner cubra todo o processo (projeto + vagas).
+      int vagasComFalha = 0;
+      if (projetoIdCriado != null && projetoId == null && vagasSelecionadas.isNotEmpty) {
         for (final idx in vagasSelecionadas) {
           if (idx < vagasSugeridas.length) {
             final v = vagasSugeridas[idx];
@@ -198,19 +205,31 @@ class ProjectFormViewModel extends ChangeNotifier {
                 certificacoesRequeridas: const [],
                 formacaoDesejada: v['formacao_desejada']?.toString(),
               );
-            } catch (_) {}
+            } catch (_) {
+              vagasComFalha++;
+            }
           }
         }
       }
 
+      loading = false;
+      _safeNotifyListeners();
+
+      final String mensagem;
+      if (projetoIdCriado == null) {
+        mensagem = projetoId != null ? 'Erro ao atualizar projeto' : 'Erro ao criar projeto';
+      } else if (vagasComFalha > 0) {
+        mensagem = 'Projeto criado, mas $vagasComFalha vaga(s) não puderam ser criadas';
+      } else {
+        mensagem = projetoId != null ? 'Projeto atualizado com sucesso' : 'Projeto criado com sucesso';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            projetoIdCriado != null
-                ? (projetoId != null ? 'Projeto atualizado com sucesso' : 'Projeto criado com sucesso')
-                : (projetoId != null ? 'Erro ao atualizar projeto' : 'Erro ao criar projeto'),
-          ),
-          backgroundColor: projetoIdCriado != null ? Colors.green : Colors.red,
+          content: Text(mensagem),
+          backgroundColor: projetoIdCriado == null
+              ? Colors.red
+              : (vagasComFalha > 0 ? Colors.orange : Colors.green),
         ),
       );
 
@@ -224,32 +243,6 @@ class ProjectFormViewModel extends ChangeNotifier {
       );
 
       return null;
-    }
-  }
-
-  Future<bool> atualizarProjetoParcial() async {
-    if (projetoId == null) return false;
-
-    loading = true;
-    _safeNotifyListeners();
-
-    try {
-      final sucesso = await ProjectController.atualizarProjetoParcial(
-        projetoId: projetoId!,
-        nome: nomeController.text.trim(),
-        descricao: descricaoController.text.trim(),
-        imagem: imagem,
-        tipo: tipo,
-        dataInicio: dataInicio,
-      );
-
-      loading = false;
-      _safeNotifyListeners();
-      return sucesso;
-    } catch (e) {
-      loading = false;
-      _safeNotifyListeners();
-      return false;
     }
   }
 
@@ -280,12 +273,6 @@ class ProjectFormViewModel extends ChangeNotifier {
     }
   }
 
-  bool get hasChanges =>
-      nomeController.text.isNotEmpty ||
-      descricaoController.text.isNotEmpty ||
-      imagem != null ||
-      manterImagemAtual != true;
-
   bool get isValid =>
       nomeController.text.trim().isNotEmpty &&
       descricaoController.text.trim().isNotEmpty;
@@ -293,11 +280,6 @@ class ProjectFormViewModel extends ChangeNotifier {
   String get screenTitle => projetoId != null ? 'Editar Projeto' : 'Novo Projeto';
 
   String get actionButtonText => projetoId != null ? 'Atualizar' : 'Criar';
-
-  void disposeControllers() {
-    nomeController.dispose();
-    descricaoController.dispose();
-  }
 
   void _safeNotifyListeners() {
     if (hasListeners) notifyListeners();

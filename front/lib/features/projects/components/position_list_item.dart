@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/components/auto_scroll_text.dart';
 import '../../position/model/position_model.dart';
 
 class PositionListItem extends StatefulWidget {
@@ -58,8 +59,8 @@ class _PositionListItemState extends State<PositionListItem> {
         child: Row(
           children: [
             Expanded(
-              child: Text(
-                widget.position.titulo,
+              child: AutoScrollText(
+                text: widget.position.titulo,
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

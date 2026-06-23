@@ -3,6 +3,7 @@ import 'package:front/features/auth/viewmodel/auth_viewmodel.dart';
 import 'package:front/features/candidatura/viewmodel/candidatura_viewmodel.dart';
 import 'package:front/features/projects/components/candidatura_card.dart';
 import 'package:provider/provider.dart';
+import '../../../core/components/auto_scroll_text.dart';
 import '../../candidatura/model/candidatura_model.dart';
 import '../../projects/model/project_model.dart';
 import '../../projects/view/project_detail_page.dart';
@@ -403,7 +404,8 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
-                        child: Text(projeto.nome,
+                        child: AutoScrollText(
+                            text: projeto.nome,
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
                       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/core/components/auto_scroll_text.dart';
 import 'package:front/features/candidatura/model/candidatura_model.dart';
 
 class CandidaturaCard extends StatelessWidget {
@@ -29,8 +30,8 @@ class CandidaturaCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        candidatura.projetoNome,
+                      child: AutoScrollText(
+                        text: candidatura.projetoNome,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -38,6 +39,7 @@ class CandidaturaCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     _buildStatusBadge(candidatura.status),
                   ],
                 ),

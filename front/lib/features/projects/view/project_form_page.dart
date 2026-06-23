@@ -585,11 +585,17 @@ class _ProjectsFormPageState extends State<ProjectFormPage>
         .map((e) => DropdownMenuItem(value: e["value"], child: Text(e["label"]!)))
         .toList();
 
+    // Evita crash do DropdownButtonFormField caso `vm.tipo` (vindo da IA ou de
+    // edição) não esteja entre as opções, ou as choices ainda não carregaram.
+    final valoresValidos = vm.tiposDisponiveis.map((e) => e["value"]).toSet();
+    final tipoSeguro =
+        (vm.tipo != null && valoresValidos.contains(vm.tipo)) ? vm.tipo : null;
+
     return _buildField(
       label: 'Área',
       required: true,
       child: DropdownButtonFormField<String>(
-        value: vm.tipo,
+        value: tipoSeguro,
         hint: const Text('Selecione a área',
             style: TextStyle(color: Color(0xFFBBBBBB), fontSize: 14)),
         decoration: InputDecoration(

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RH Residência — Apresentação do Sistema</title>
+<style>
+  :root {
+    --bg: #0d1321;
+    --bg-card: #161e30;
+    --bg-card2: #1c2740;
+    --accent: #4f8ef7;
+    --accent2: #34d399;
+    --accent3: #f59e0b;
+    --text: #e8edf7;
+    --muted: #93a3c0;
+    --border: #2a3a5c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6vh 8vw;
+    background:
+      radial-gradient(ellipse 80% 60% at 85% -10%, rgba(79,142,247,.12), transparent),
+      radial-gradient(ellipse 60% 50% at 10% 110%, rgba(52,211,153,.08), transparent),
+      var(--bg);
+  }
+  .slide.active { display: flex; animation: fadeIn .45s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  .tag {
+    display: inline-block;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.1rem;
+  }
+  h1 { font-size: clamp(2.2rem, 5.5vw, 4.2rem); font-weight: 800; line-height: 1.08; }
+  h2 { font-size: clamp(1.6rem, 3.4vw, 2.6rem); font-weight: 800; margin-bottom: 2.2rem; line-height: 1.15; }
+  h2 .hl { color: var(--accent); }
+  .subtitle { font-size: clamp(1rem, 1.8vw, 1.35rem); color: var(--muted); margin-top: 1.2rem; max-width: 38em; line-height: 1.6; }
+
+  .grid { display: grid; gap: 1.2rem; }
+  .grid.c2 { grid-template-columns: 1fr 1fr; }
+  .grid.c3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem 1.6rem;
+  }
+  .card .icon { font-size: 1.9rem; margin-bottom: .8rem; display: block; }
+  .card h3 { font-size: 1.08rem; margin-bottom: .5rem; font-weight: 700; }
+  .card p { color: var(--muted); font-size: .94rem; line-height: 1.55; }
+  .card.glow { border-color: rgba(79,142,247,.55); box-shadow: 0 0 40px rgba(79,142,247,.10); }
+
+  ul.list { list-style: none; }
+  ul.list li {
+    padding: .65rem 0 .65rem 2.1rem;
+    position: relative;
+    font-size: clamp(.95rem, 1.6vw, 1.15rem);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  ul.list li::before {
+    content: "✓";
+    position: absolute; left: 0; top: .6rem;
+    width: 1.4rem; height: 1.4rem;
+    background: rgba(52,211,153,.15);
+    color: var(--accent2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; font-weight: 700;
+  }
+  ul.list li b { color: #fff; }
+
+  /* arquitetura */
+  .arch { display: flex; align-items: stretch; gap: 0; justify-content: center; flex-wrap: wrap; }
+  .arch-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+    text-align: center;
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+  }
+  .arch-box .icon { font-size: 2.2rem; display: block; margin-bottom: .6rem; }
+  .arch-box h3 { font-size: 1.05rem; margin-bottom: .35rem; }
+  .arch-box small { color: var(--muted); font-size: .85rem; line-height: 1.45; display: block; }
+  .arch-arrow {
+    display: flex; align-items: center;
+    color: var(--accent);
+    font-size: 1.8rem;
+    padding: 0 1rem;
+    font-weight: 300;
+  }
+  .arch-sub {
+    margin-top: 1.4rem;
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+  }
+  .pill {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: .5rem 1.1rem;
+    font-size: .85rem;
+    color: var(--muted);
+  }
+  .pill b { color: var(--text); }
+
+  /* tabela de perfis */
+  table { border-collapse: collapse; width: 100%; font-size: clamp(.85rem, 1.5vw, 1.02rem); }
+  th, td { padding: .68rem 1rem; text-align: center; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: .78rem; letter-spacing: .08em; }
+  td:first-child, th:first-child { text-align: left; }
+  td .yes { color: var(--accent2); font-weight: 700; }
+  td .no { color: #5b6b8c; }
+
+  /* fluxo numerado */
+  .steps { display: flex; flex-direction: column; gap: .9rem; }
+  .step { display: flex; align-items: flex-start; gap: 1.1rem; }
+  .step .num {
+    flex-shrink: 0;
+    width: 2.3rem; height: 2.3rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #7c5cf0);
+    color: #fff; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+  .step .txt { padding-top: .25rem; font-size: clamp(.95rem, 1.6vw, 1.12rem); line-height: 1.5; }
+  .step .txt b { color: #fff; }
+  .step .txt small { color: var(--muted); display: block; margin-top: .15rem; }
+
+  /* barras do score */
+  .score-bars { display: flex; flex-direction: column; gap: 1.1rem; margin-top: .5rem; }
+  .sbar .label { display: flex; justify-content: space-between; margin-bottom: .45rem; font-size: .95rem; }
+  .sbar .label b { font-size: 1.05rem; }
+  .sbar .track { height: 14px; background: var(--bg-card2); border-radius: 999px; overflow: hidden; }
+  .sbar .fill { height: 100%; border-radius: 999px; }
+
+  .footer-note {
+    margin-top: 2.4rem;
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding-left: 1rem;
+    line-height: 1.55;
+    max-width: 52em;
+  }
+
+  /* navegação */
+  .nav {
+    position: fixed;
+    bottom: 1.4rem; right: 2rem;
+    display: flex; gap: .5rem; align-items: center;
+    z-index: 10;
+  }
+  .nav button {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 2.6rem; height: 2.6rem;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: .15s;
+  }
+  .nav button:hover { background: var(--accent); border-color: var(--accent); }
+  .counter {
+    position: fixed;
+    bottom: 1.85rem; left: 2rem;
+    color: var(--muted);
+    font-size: .85rem;
+    z-index: 10;
+  }
+  .progress {
+    position: fixed; top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width .35s ease;
+    z-index: 10;
+  }
+  .hint { color: var(--muted); font-size: .85rem; margin-top: 3rem; }
+
+  .logo-row { display: flex; align-items: center; gap: .8rem; margin-bottom: 2rem; }
+  .logo-dot {
+    width: 14px; height: 14px; border-radius: 4px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+  }
+  .logo-row span { font-weight: 700; letter-spacing: .1em; font-size: .85rem; color: var(--muted); text-transform: uppercase; }
+
+  .big-num { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; line-height: 1; }
+  .big-num.blue { color: var(--accent); }
+  .big-num.green { color: var(--accent2); }
+  .big-num.amber { color: var(--accent3); }
+
+  @media (max-width: 860px) {
+    .grid.c2, .grid.c3 { grid-template-columns: 1fr; }
+    .arch { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); justify-content: center; padding: .4rem 0; }
+    .slide { padding: 4vh 6vw; overflow-y: auto; justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!-- SLIDE 1 — Capa -->
+<section class="slide active">
+  <div class="logo-row"><div class="logo-dot"></div><span>Venturus · Residência</span></div>
+  <div class="tag">Apresentação do Sistema</div>
+  <h1>RH Residência</h1>
+  <p class="subtitle">Plataforma mobile que centraliza a divulgação de projetos, abertura de vagas internas e candidaturas — com <b style="color:var(--text)">Inteligência Artificial</b> para recomendar os candidatos mais compatíveis com cada vaga.</p>
+  <p class="hint">Use as setas ← → do teclado para navegar &nbsp;·&nbsp; F11 para tela cheia</p>
+</section>
+
+<!-- SLIDE 2 — O problema -->
+<section class="slide">
+  <div class="tag">Contexto</div>
+  <h2>O problema que resolvemos</h2>
+  <div class="grid c3">
+    <div class="card">
+      <span class="icon">⏱️</span>
+      <h3>Triagem manual</h3>
+      <p>O RH analisa candidato por candidato para cada vaga, um processo lento e repetitivo que consome horas da equipe.</p>
+    </div>
+    <div class="card">
+      <span class="icon">🔍</span>
+      <h3>Falta de visibilidade</h3>
+      <p>Colaboradores não têm um lugar único para descobrir projetos internos e oportunidades de alocação.</p>
+    </div>
+    <div class="card">
+      <span class="icon">🎲</span>
+      <h3>Decisão subjetiva</h3>
+      <p>Sem critérios padronizados de compatibilidade, a alocação de pessoas depende de percepção individual.</p>
+    </div>
+  </div>
+  <p class="footer-note">O RH Residência digitaliza esse fluxo de ponta a ponta e adiciona um motor de IA que <b>ranqueia automaticamente</b> os candidatos — a decisão final continua sempre com o RH.</p>
+</section>
+
+<!-- SLIDE 3 — A solução em uma frase -->
+<section class="slide">
+  <div class="tag">A Solução</div>
+  <h2>Um fluxo único, do projeto à alocação</h2>
+  <div class="steps">
+    <div class="step"><div class="num">1</div><div class="txt"><b>RH cria o projeto</b><small>Com ajuda da IA: a partir de uma ideia em texto livre ou de um PDF de briefing</small></div></div>
+    <div class="step"><div class="num">2</div><div class="txt"><b>Abre as vagas</b><small>Com habilidades, certificações e formação desejadas</small></div></div>
+    <div class="step"><div class="num">3</div><div class="txt"><b>Colaborador se candidata</b><small>Perfil preenchido automaticamente a partir do currículo em PDF</small></div></div>
+    <div class="step"><div class="num">4</div><div class="txt"><b>IA ranqueia os candidatos</b><small>Score de compatibilidade explicável para cada candidatura</small></div></div>
+    <div class="step"><div class="num">5</div><div class="txt"><b>RH decide</b><small>Aceita ou recusa com base no ranking — a decisão é sempre humana</small></div></div>
+  </div>
+</section>
+
+<!-- SLIDE 4 — Perfis de usuário -->
+<section class="slide">
+  <div class="tag">Perfis de Usuário</div>
+  <h2>Três perfis, permissões sob medida</h2>
+  <div class="card" style="padding:1rem 1.4rem">
+    <table>
+      <tr><th>Funcionalidade</th><th>Admin</th><th>RH</th><th>Colaborador</th></tr>
+      <tr><td>Criar e publicar projetos</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+      <tr><td>Criar vagas</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+      <tr><td>Ver candidatos e recomendações de IA</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">—</span></td></tr>
+      <tr><td>Candidatar-se a vagas</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+      <tr><td>Acompanhar candidaturas</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+      <tr><td>Editar perfil pessoal</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 5 — Arquitetura -->
+<section class="slide">
+  <div class="tag">Arquitetura</div>
+  <h2>Três componentes, <span class="hl">um comando</span> para subir tudo</h2>
+  <div class="arch">
+    <div class="arch-box">
+      <span class="icon">📱</span>
+      <h3>App Mobile</h3>
+      <small>Flutter · arquitetura MVVM<br>Login seguro com sessão persistida (JWT)</small>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">
+      <span class="icon">⚙️</span>
+      <h3>Backend / API</h3>
+      <small>Django + DRF<br>Regras de negócio, autenticação e dados<br>(projetos, vagas, candidaturas)</small>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box glow card">
+      <span class="icon">🧠</span>
+      <h3>AI Service</h3>
+      <small>FastAPI · microsserviço dedicado<br>LLM (Groq · Llama) + embeddings locais</small>
+    </div>
+  </div>
+  <div class="arch-sub">
+    <div class="pill">🐳 <b>Docker Compose</b> — todo o ambiente sobe com um comando</div>
+    <div class="pill">🔐 <b>JWT</b> — autenticação segura em todas as camadas</div>
+    <div class="pill">🔄 <b>IA desacoplada</b> — trocar de provedor de LLM não afeta o backend</div>
+  </div>
+  <p class="footer-note">A IA fica isolada em um microsserviço próprio: o backend não conhece nenhum modelo, apenas consome uma API interna. Na prática, já migramos de provedor de LLM <b>sem alterar uma linha</b> do backend.</p>
+</section>
+
+<!-- SLIDE 6 — IA: criação de projeto -->
+<section class="slide">
+  <div class="tag">IA em Ação · 1 de 3</div>
+  <h2>Criação de projeto <span class="hl">assistida por IA</span></h2>
+  <div class="grid c2">
+    <div class="card glow">
+      <span class="icon">💡</span>
+      <h3>De uma ideia solta…</h3>
+      <p>O RH descreve o projeto em linguagem natural — ou simplesmente envia um <b style="color:var(--text)">PDF de briefing</b> — e a IA estrutura tudo.</p>
+    </div>
+    <div class="card">
+      <span class="icon">📋</span>
+      <h3>…para um projeto completo</h3>
+      <p>Nome, descrição profissional, tipo de projeto e até as <b style="color:var(--text)">vagas recomendadas</b> com habilidades requeridas, prontos para revisão e publicação.</p>
+    </div>
+  </div>
+  <ul class="list" style="margin-top:1.6rem">
+    <li>Também sugere <b>melhorias em projetos existentes</b>: descrição, novas vagas e dicas</li>
+    <li>Reduz o tempo de cadastro de minutos para segundos</li>
+  </ul>
+</section>
+
+<!-- SLIDE 7 — IA: currículo -->
+<section class="slide">
+  <div class="tag">IA em Ação · 2 de 3</div>
+  <h2>Leitura inteligente de <span class="hl">currículos em PDF</span></h2>
+  <div class="grid c2">
+    <div class="card">
+      <span class="icon">📄</span>
+      <h3>PDF com texto</h3>
+      <p>Extração direta do conteúdo e análise via LLM: habilidades, certificações, formação e tempo de experiência viram dados estruturados no perfil.</p>
+    </div>
+    <div class="card glow">
+      <span class="icon">📷</span>
+      <h3>PDF escaneado (foto/imagem)</h3>
+      <p>O sistema detecta automaticamente e usa o <b style="color:var(--text)">modelo de visão</b> como OCR inteligente — funciona até com currículos digitalizados.</p>
+    </div>
+  </div>
+  <ul class="list" style="margin-top:1.6rem">
+    <li>O colaborador <b>não digita nada</b>: o perfil é preenchido automaticamente</li>
+    <li>O arquivo PDF é processado e <b>descartado</b> — só os dados estruturados são armazenados</li>
+  </ul>
+</section>
+
+<!-- SLIDE 8 — IA: recomendação -->
+<section class="slide">
+  <div class="tag">IA em Ação · 3 de 3</div>
+  <h2>Recomendação com <span class="hl">score explicável</span></h2>
+  <div class="grid c2" style="align-items:center">
+    <div class="score-bars">
+      <div class="sbar">
+        <div class="label"><span>Similaridade semântica <small style="color:var(--muted)">(embeddings)</small></span><b style="color:var(--accent)">50%</b></div>
+        <div class="track"><div class="fill" style="width:50%; background:var(--accent)"></div></div>
+      </div>
+      <div class="sbar">
+        <div class="label"><span>Match exato de habilidades</span><b style="color:var(--accent2)">30%</b></div>
+        <div class="track"><div class="fill" style="width:30%; background:var(--accent2)"></div></div>
+      </div>
+      <div class="sbar">
+        <div class="label"><span>Completude do perfil</span><b style="color:var(--accent3)">20%</b></div>
+        <div class="track"><div class="fill" style="width:20%; background:var(--accent3)"></div></div>
+      </div>
+    </div>
+    <div>
+      <ul class="list">
+        <li><b>Não é caixa-preta:</b> o cálculo é determinístico e auditável — dá para justificar por que cada candidato ficou em cada posição</li>
+        <li>Entende <b>sinônimos e contexto</b>: "desenvolvedor Python" combina com "engenheiro backend Django"</li>
+        <li>Penaliza perfis vazios — ninguém é recomendado sem informação suficiente</li>
+      </ul>
+    </div>
+  </div>
+  <p class="footer-note">Os embeddings rodam <b>localmente</b>, com cache: custo zero de API na recomendação e respostas quase instantâneas em consultas repetidas.</p>
+</section>
+
+<!-- SLIDE 9 — Segurança e custos -->
+<section class="slide">
+  <div class="tag">Confiabilidade</div>
+  <h2>Segurança, custo e resiliência</h2>
+  <div class="grid c3">
+    <div class="card">
+      <span class="icon">🔒</span>
+      <h3>Privacidade</h3>
+      <p>Currículos são processados e descartados. Autenticação JWT com armazenamento seguro no dispositivo. Permissões por perfil em todas as rotas.</p>
+    </div>
+    <div class="card">
+      <span class="icon">💰</span>
+      <h3>Custo controlado</h3>
+      <p>Recomendação 100% local (sem custo de API). LLM usado apenas em momentos pontuais — leitura de currículo e criação de projeto.</p>
+    </div>
+    <div class="card">
+      <span class="icon">🛡️</span>
+      <h3>Resiliência</h3>
+      <p>Se o serviço de IA ficar indisponível, o sistema continua funcionando: projetos, vagas e candidaturas não dependem dele.</p>
+    </div>
+  </div>
+  <div class="arch-sub" style="margin-top:2rem">
+    <div class="pill">🧑‍⚖️ A IA <b>recomenda e explica</b> — quem decide é sempre o RH</div>
+  </div>
+</section>
+
+<!-- SLIDE 10 — Demo -->
+<section class="slide">
+  <div class="tag">Demonstração</div>
+  <h2>O que vamos ver <span class="hl">ao vivo</span></h2>
+  <div class="steps">
+    <div class="step"><div class="num">1</div><div class="txt"><b>Como RH:</b> criar um projeto a partir de uma ideia — e ver a IA estruturar tudo</div></div>
+    <div class="step"><div class="num">2</div><div class="txt"><b>Como RH:</b> publicar o projeto e abrir uma vaga com requisitos</div></div>
+    <div class="step"><div class="num">3</div><div class="txt"><b>Como Colaborador:</b> descobrir o projeto, enviar o currículo em PDF e ver o perfil preenchido sozinho</div></div>
+    <div class="step"><div class="num">4</div><div class="txt"><b>Como Colaborador:</b> candidatar-se à vaga</div></div>
+    <div class="step"><div class="num">5</div><div class="txt"><b>De volta como RH:</b> abrir a vaga e ver o <b>ranking de compatibilidade</b> dos candidatos</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 11 — Próximos passos -->
+<section class="slide">
+  <div class="tag">Evolução</div>
+  <h2>Próximos passos possíveis</h2>
+  <div class="grid c3">
+    <div class="card">
+      <span class="icon">🔔</span>
+      <h3>Notificações</h3>
+      <p>Avisar colaboradores sobre novas vagas compatíveis com seu perfil e atualizações de status das candidaturas.</p>
+    </div>
+    <div class="card">
+      <span class="icon">📊</span>
+      <h3>Dashboard para o RH</h3>
+      <p>Métricas de candidaturas, tempo de preenchimento de vagas e habilidades mais demandadas na empresa.</p>
+    </div>
+    <div class="card">
+      <span class="icon">🔁</span>
+      <h3>Aprendizado contínuo</h3>
+      <p>Usar as decisões do RH (aceites e recusas) para calibrar e melhorar o score de recomendação ao longo do tempo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 12 — Encerramento -->
+<section class="slide">
+  <div class="logo-row"><div class="logo-dot"></div><span>Venturus · Residência</span></div>
+  <h1 style="font-size:clamp(2rem,4.5vw,3.4rem)">Em resumo</h1>
+  <div class="grid c3" style="margin-top:2.2rem">
+    <div class="card"><div class="big-num blue">1</div><p style="margin-top:.8rem;color:var(--muted)">Plataforma única para projetos, vagas e candidaturas internas</p></div>
+    <div class="card"><div class="big-num green">3</div><p style="margin-top:.8rem;color:var(--muted)">Pontos de IA: criação de projeto, leitura de currículo e recomendação de candidatos</p></div>
+    <div class="card"><div class="big-num amber">0</div><p style="margin-top:.8rem;color:var(--muted)">Decisões automatizadas — a IA apoia, o RH decide</p></div>
+  </div>
+  <p class="subtitle" style="margin-top:2.5rem">Obrigado! Perguntas?</p>
+</section>
+
+<div class="counter"><span id="cur">1</span> / <span id="total"></span></div>
+<div class="nav">
+  <button onclick="go(-1)" title="Anterior">‹</button>
+  <button onclick="go(1)" title="Próximo">›</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let i = 0;
+  document.getElementById('total').textContent = slides.length;
+
+  function show(n) {
+    slides[i].classList.remove('active');
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides[i].classList.add('active');
+    document.getElementById('cur').textContent = i + 1;
+    document.getElementById('progress').style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+  function go(d) { show(i + d); }
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight', ' ', 'PageDown', 'Enter'].includes(e.key)) { e.preventDefault(); go(1); }
+    if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); go(-1); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+  });
+
+  // navegação por toque (mobile)
+  let x0 = null;
+  document.addEventListener('touchstart', e => x0 = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+    x0 = null;
+  });
+
+  show(0);
+</script>
+</body>
+</html>

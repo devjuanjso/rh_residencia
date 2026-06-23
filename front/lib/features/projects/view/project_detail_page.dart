@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/components/auto_scroll_text.dart';
 import '../components/project_default_cover.dart';
 import '../../recomendacao/view/candidatos_modal.dart';
 import '../../position/components/inline_position_form.dart';
@@ -241,8 +242,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(
-                  p.nome,
+                child: AutoScrollText(
+                  text: p.nome,
                   style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -600,8 +601,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                position.titulo,
+              AutoScrollText(
+                text: position.titulo,
                 style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,

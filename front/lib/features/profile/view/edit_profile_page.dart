@@ -22,7 +22,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController bioController;
   late TextEditingController linkedinController;
   late TextEditingController formacaoController;
-  late TextEditingController novaFormacaoController;
 
   String? selectedCargo;
   String? selectedSenioridade;
@@ -40,7 +39,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     bioController = TextEditingController(text: profile.bio);
     linkedinController = TextEditingController(text: profile.linkedin);
     formacaoController = TextEditingController(text: profile.formacao);
-    novaFormacaoController = TextEditingController();
 
     selectedCargo = profile.cargo;
     selectedSenioridade = profile.senioridade;
@@ -309,7 +307,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
             children: [
               Expanded(
                 child: TextField(
-                  controller: novaFormacaoController,
+                  controller: vm.certificacaoController,
+                  onSubmitted: (_) => vm.addCertificacao(),
                   decoration: InputDecoration(
                     hintText: 'Ex: Bacharel em Design - Univ...',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -318,13 +317,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: () {
-                  final value = novaFormacaoController.text.trim();
-                  if (value.isNotEmpty) {
-                    vm.addCertificacao();
-                    novaFormacaoController.clear();
-                  }
-                },
+                onPressed: vm.addCertificacao,
                 icon: const Icon(Icons.add, color: Colors.deepPurple),
               ),
             ],
@@ -462,7 +455,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     bioController.dispose();
     linkedinController.dispose();
     formacaoController.dispose();
-    novaFormacaoController.dispose();
     super.dispose();
   }
 }

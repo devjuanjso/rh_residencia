@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/components/auto_scroll_text.dart';
 import '../../../core/layout/empty_state.dart';
 import '../components/position_list_item.dart';
 import '../model/project_model.dart';
@@ -220,8 +221,8 @@ class _ProjectListPageState extends State<ProjectListPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          projeto.nome,
+        AutoScrollText(
+          text: projeto.nome,
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -267,12 +268,16 @@ class _ProjectListPageState extends State<ProjectListPage> {
       children: [
         Icon(icon, size: 18, color: color ?? Colors.grey),
         const SizedBox(width: 8),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.black87,
-            fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.black87,
+              fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

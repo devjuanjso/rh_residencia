@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/components/auto_scroll_text.dart';
 import '../model/project_model.dart';
 import 'project_default_cover.dart';
 
@@ -73,8 +74,8 @@ class ProjectCard extends StatelessWidget {
   }
 
   Widget _buildProjectTitle() {
-    return Text(
-      project.nome,
+    return AutoScrollText(
+      text: project.nome,
       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
     );
   }
@@ -121,12 +122,16 @@ class ProjectCard extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: Colors.deepPurple),
         const SizedBox(width: 8),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.black87,
-            fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.black87,
+              fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
