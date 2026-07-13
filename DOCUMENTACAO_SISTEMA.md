@@ -1,7 +1,7 @@
 # Documentação do Sistema — RH Residência
 
-**Versão:** 1.0  
-**Data:** Maio de 2026  
+**Versão:** 1.1  
+**Data:** Julho de 2026  
 **Projeto:** Plataforma de Gestão de RH — Venturus  
 
 ---
@@ -10,7 +10,7 @@
 
 1. [Visão Geral do Sistema](#1-visão-geral-do-sistema)
 2. [Perfis de Usuário](#2-perfis-de-usuário)
-3. [Acesso ao Sistema — Login](#3-acesso-ao-sistema--login)
+3. [Acesso ao Sistema — Login e Criação de Conta](#3-acesso-ao-sistema--login-e-criação-de-conta)
 4. [Tela Inicial e Navegação](#4-tela-inicial-e-navegação)
 5. [Projetos](#5-projetos)
 6. [Vagas](#6-vagas)
@@ -65,17 +65,39 @@ Perfil dos funcionários da empresa. Pode visualizar os projetos publicados, se 
 
 ---
 
-## 3. Acesso ao Sistema — Login
+## 3. Acesso ao Sistema — Login e Criação de Conta
 
-Ao abrir o aplicativo, o usuário é direcionado para a tela de login. O acesso é feito com usuário e senha cadastrados previamente pelo time de RH.
+Ao abrir o aplicativo, o usuário é direcionado para a tela de login. O acesso é feito com usuário e senha.
 
-- Caso o usuário não possua cadastro, a tela indica como entrar em contato com o RH para solicitar acesso.
 - Caso o usuário esqueça a senha, há uma opção para contatar diretamente o RH.
 - Após o login bem-sucedido, o sistema mantém a sessão ativa automaticamente, dispensando novo login a cada uso.
 
 ---
 
 > **[IMAGEM — Tela de login]**
+
+---
+
+### Criando uma Conta
+
+Quem ainda não possui acesso pode criar a própria conta diretamente pelo app, pelo link **"Criar conta"** na tela de login. As informações solicitadas são:
+
+- **Nome e sobrenome**
+- **Usuário**
+- **E-mail**
+- **Senha** (com confirmação)
+
+Ao final do cadastro, o usuário já é autenticado automaticamente e direcionado para a tela inicial.
+
+#### Opção "Cadastrar como RH"
+
+Na tela de criação de conta existe um botão/switch **"Cadastrar como RH"**, que permite que a própria pessoa se cadastre já com o perfil de Recursos Humanos (em vez do perfil padrão de Colaborador).
+
+> ⚠️ **Atenção — Fase de testes:** essa opção está disponível **apenas durante a fase de testes** do sistema, para facilitar a validação das funcionalidades de RH por qualquer pessoa do time de teste. Em produção, essa escolha livre de perfil será removida e a definição de quem é RH passará a ser feita apenas pelo time de Administração.
+
+---
+
+> **[IMAGEM — Tela de criação de conta com o botão "Cadastrar como RH" e o aviso de fase de testes]**
 
 ---
 
@@ -281,7 +303,7 @@ O usuário pode editar suas informações a qualquer momento acessando a aba "Pe
 ### Fluxo do Colaborador
 
 ```
-Login
+Criar conta (perfil Colaborador) ou Login
   └── Aba "Descobrir"
         └── Visualizar projetos publicados
               └── Abrir projeto → Ver vagas
@@ -301,7 +323,7 @@ Login
 ### Fluxo do RH / Admin
 
 ```
-Login
+Criar conta (com opção "Cadastrar como RH" — disponível só na fase de testes) ou Login
   └── Aba "Descobrir"
         └── Visualizar todos os projetos publicados
   └── Aba "Projetos"
@@ -322,4 +344,4 @@ Login
 
 ---
 
-*Documento gerado em maio de 2026 — Projeto RH Residência / Venturus*
+*Documento gerado em julho de 2026 — Projeto RH Residência / Venturus*

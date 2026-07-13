@@ -9,6 +9,7 @@ import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 
 import 'features/auth/view/login_page.dart';
+import 'features/auth/view/register_page.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
 
 Future<void> main() async {
@@ -70,6 +71,9 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
+      routes: {
+        '/register': (_) => const RegisterPage(),
+      },
       home: !_splashDone
           ? SplashPage(onComplete: () => setState(() => _splashDone = true))
           : (auth.isAuthenticated ? const HomePage() : const LoginPage()),

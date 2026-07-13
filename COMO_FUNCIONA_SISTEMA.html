@@ -1,0 +1,329 @@
+<title>Como usar o Vconecta</title>
+<style>
+  :root {
+    --bg: #FAFAFC;
+    --bg-elevated: #FFFFFF;
+    --bg-sidebar: #F4F1F8;
+    --text-primary: #1A1A2E;
+    --text-secondary: #64748B;
+    --text-tertiary: #94A3B8;
+    --border: #E2E8F0;
+    --border-soft: #EDEBF3;
+    --accent: #6B21A8;
+    --accent-soft: #F5F0FA;
+    --accent-contrast: #FFFFFF;
+    --status-draft: #B45309;
+    --status-draft-bg: #FEF3E2;
+    --status-published: #15803D;
+    --status-published-bg: #ECFDF3;
+    --status-closed: #475569;
+    --status-closed-bg: #F1F5F9;
+    --status-pending: #B45309;
+    --status-accepted: #15803D;
+    --status-rejected: #B91C1C;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131019; --bg-elevated: #1B1724; --bg-sidebar: #17131F;
+      --text-primary: #F1EEF7; --text-secondary: #B4ADC4; --text-tertiary: #837C97;
+      --border: #2E2740; --border-soft: #241D33;
+      --accent: #C398EC; --accent-soft: #241A33; --accent-contrast: #1F1329;
+      --status-draft: #F3B559; --status-draft-bg: #2E2313;
+      --status-published: #6FDB9B; --status-published-bg: #12271C;
+      --status-closed: #A8B0C0; --status-closed-bg: #1E2430;
+      --status-pending: #F3B559; --status-accepted: #6FDB9B; --status-rejected: #F29B9B;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #131019; --bg-elevated: #1B1724; --bg-sidebar: #17131F;
+    --text-primary: #F1EEF7; --text-secondary: #B4ADC4; --text-tertiary: #837C97;
+    --border: #2E2740; --border-soft: #241D33;
+    --accent: #C398EC; --accent-soft: #241A33; --accent-contrast: #1F1329;
+    --status-draft: #F3B559; --status-draft-bg: #2E2313;
+    --status-published: #6FDB9B; --status-published-bg: #12271C;
+    --status-closed: #A8B0C0; --status-closed-bg: #1E2430;
+    --status-pending: #F3B559; --status-accepted: #6FDB9B; --status-rejected: #F29B9B;
+  }
+  :root[data-theme="light"] {
+    --bg: #FAFAFC; --bg-elevated: #FFFFFF; --bg-sidebar: #F4F1F8;
+    --text-primary: #1A1A2E; --text-secondary: #64748B; --text-tertiary: #94A3B8;
+    --border: #E2E8F0; --border-soft: #EDEBF3;
+    --accent: #6B21A8; --accent-soft: #F5F0FA; --accent-contrast: #FFFFFF;
+    --status-draft: #B45309; --status-draft-bg: #FEF3E2;
+    --status-published: #15803D; --status-published-bg: #ECFDF3;
+    --status-closed: #475569; --status-closed-bg: #F1F5F9;
+    --status-pending: #B45309; --status-accepted: #15803D; --status-rejected: #B91C1C;
+  }
+
+  @page { size: A4; margin: 9mm 11mm; }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 36px 16px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 14px;
+  }
+  .brand-mark {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--accent); color: var(--accent-contrast);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 12px; flex: none;
+  }
+  .brand-text {
+    font-weight: 700; font-size: 12.5px; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--text-tertiary);
+  }
+
+  h1.title {
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    margin: 0 0 8px;
+    text-wrap: balance;
+    color: var(--text-primary);
+  }
+
+  .lede {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    max-width: 62ch;
+    margin: 0 0 12px;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 12px;
+  }
+  .meta-chip {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 9px;
+  }
+
+  hr.rule { border: none; border-top: 1px solid var(--border); margin: 8px 0 12px; }
+
+  section.chapter { margin-bottom: 11px; }
+
+  .chapter-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 3px;
+  }
+  .chapter-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  h2 {
+    font-size: 15.5px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+    color: var(--text-primary);
+    display: inline;
+  }
+
+  h3 {
+    font-size: 12.5px;
+    font-weight: 700;
+    margin: 10px 0 3px;
+    color: var(--text-primary);
+  }
+
+  p {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    max-width: 66ch;
+    margin: 0 0 6px;
+  }
+
+  strong { color: var(--text-primary); font-weight: 650; }
+
+  ul.plain {
+    margin: 0 0 6px;
+    padding-left: 17px;
+  }
+  ul.plain li {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+
+  .role {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 8px 2px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .role-admin, .role-rh { background: var(--accent-soft); color: var(--accent); }
+  .role-colab { background: var(--status-closed-bg); color: var(--status-closed); }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+  }
+  .pill::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .pill-pending { background: var(--status-draft-bg); color: var(--status-pending); }
+  .pill-accepted { background: var(--status-published-bg); color: var(--status-accepted); }
+  .pill-rejected { background: color-mix(in srgb, var(--status-rejected) 14%, transparent); color: var(--status-rejected); }
+
+  .status-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 5px 0 8px; }
+
+  .callout {
+    display: flex;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 9px;
+    background: var(--status-draft-bg);
+    border: 1px solid color-mix(in srgb, var(--status-draft) 30%, transparent);
+    margin: 4px 0 4px;
+  }
+  .callout svg { flex: none; color: var(--status-draft); margin-top: 1px; width: 14px; height: 14px; }
+  .callout p { margin: 0; font-size: 11.5px; color: var(--text-primary); }
+  .callout strong { color: var(--status-draft); }
+
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 28px;
+    align-items: start;
+  }
+
+  .doc-footer {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+</style>
+
+<div class="page">
+
+  <div class="brand">
+    <div class="brand-mark">V</div>
+    <div class="brand-text">Vconecta · Venturus</div>
+  </div>
+
+  <h1 class="title">Como usar o Vconecta</h1>
+  <p class="lede">
+    O Vconecta é o app da Venturus para você acompanhar projetos, se candidatar a vagas internas e
+    receber recomendações feitas por IA — direto do celular. Guia rápido do que você faz em cada tela.
+  </p>
+  <div class="meta-row">
+    <span class="meta-chip">Versão 1.1</span>
+    <span class="meta-chip">Julho de 2026</span>
+    <span class="meta-chip">Primeira onda de testes · Android</span>
+  </div>
+
+  <hr class="rule" />
+
+  <section class="chapter">
+    <div class="chapter-head"><span class="chapter-num">01</span><h2>O que é o Vconecta</h2></div>
+    <p>
+      É o app onde você acompanha os projetos da Venturus e se candidata às vagas abertas dentro deles.
+      Por trás, uma IA analisa seu perfil e sugere ao RH quais vagas combinam mais com você — então
+      manter seu perfil completo ajuda a aparecer nas recomendações certas.
+    </p>
+  </section>
+
+  <section class="chapter">
+    <div class="chapter-head"><span class="chapter-num">02</span><h2>Entrando no app</h2></div>
+    <p>
+      Ao abrir o app, você cai na tela de login — entre com seu usuário e senha. Depois do primeiro
+      login, a sessão fica ativa automaticamente, sem pedir login de novo toda vez.
+    </p>
+    <h3>Ainda não tem conta?</h3>
+    <p>
+      Toque em <strong>"Criar conta"</strong> na tela de login e preencha nome, sobrenome, usuário,
+      e-mail e senha. Ao terminar, você já entra automaticamente e cai direto na tela inicial.
+    </p>
+    <div class="callout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+      <p><strong>Só nesta fase de testes:</strong> a tela de cadastro tem um botão "Cadastrar como RH", usado apenas por quem vai testar as funções de RH.</p>
+    </div>
+  </section>
+
+  <section class="chapter">
+    <div class="chapter-head"><span class="chapter-num">03</span><h2>Se localizando no app</h2></div>
+    <p>Depois do login, você navega por três abas na parte de baixo da tela:</p>
+    <ul class="plain">
+      <li><strong>Descobrir</strong> — todos os projetos publicados, com as vagas de cada um.</li>
+      <li><strong>Projetos</strong> — mostra suas candidaturas (se você é Colaborador).</li>
+      <li><strong>Perfil</strong> — seus dados, edição de perfil e opção de sair.</li>
+    </ul>
+  </section>
+
+  <div class="cols">
+    <section class="chapter">
+      <div class="chapter-head"><span class="chapter-num">04</span><h2>Se candidatando a uma vaga</h2></div>
+      <p>
+        Abra a vaga que te interessa e toque em candidatar-se — é só um toque, o RH já é notificado.
+        Só dá pra se candidatar uma vez em cada vaga.
+      </p>
+      <p>Depois, acompanhe pela aba "Projetos" — cada candidatura mostra projeto, vaga, data e status:</p>
+      <div class="status-row">
+        <span class="pill pill-pending">Pendente</span>
+        <span class="pill pill-accepted">Aceito</span>
+        <span class="pill pill-rejected">Recusado</span>
+      </div>
+    </section>
+
+    <section class="chapter">
+      <div class="chapter-head"><span class="chapter-num">05</span><h2>Seu perfil</h2></div>
+      <p>É o que a IA usa pra te recomendar às vagas certas, então vale manter completo:</p>
+      <ul class="plain">
+        <li>Nome, foto e cargo atual</li>
+        <li>Área de atuação e senioridade</li>
+        <li>Habilidades técnicas e comportamentais</li>
+        <li>Certificações e formação</li>
+        <li>Bio e link do LinkedIn</li>
+      </ul>
+      <p>Edite quando quiser pela aba "Perfil" — quanto mais completo, mais precisas as recomendações.</p>
+    </section>
+  </div>
+
+  <div class="doc-footer">
+    Vconecta · Venturus — julho de 2026. Primeira onda de testes, só Android. Dúvidas, chama o RH.
+  </div>
+
+</div>

@@ -36,6 +36,43 @@ class AuthService {
     throw Exception(mensagem);
   }
 
+  Future<void> register({
+    required String username,
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String role,
+  }) async {
+    final response = await http.post(
+      Uri.parse('${Config.baseUrl}/register/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': username,
+        'email': email,
+        'password': password,
+        'first_name': firstName,
+        'last_name': lastName,
+        'role': role,
+      }),
+    );
+
+    if (response.statusCode == 201) return;
+
+    String mensagem = 'Não foi possível criar a conta';
+    try {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final firstError = body.values.first;
+      if (firstError is List && firstError.isNotEmpty) {
+        mensagem = firstError.first.toString();
+      } else if (firstError != null) {
+        mensagem = firstError.toString();
+      }
+    } catch (_) {}
+
+    throw Exception(mensagem);
+  }
+
   // Busca os dados do usuário autenticado no backend.
   Future<Map<String, dynamic>?> fetchMe() async {
     try {

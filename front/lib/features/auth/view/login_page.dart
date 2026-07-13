@@ -366,13 +366,13 @@ class _LoginPageState extends State<LoginPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text(
-            'Não tem acesso? ',
+            'Não tem uma conta? ',
             style: TextStyle(fontSize: 13, color: _textSecondary),
           ),
           GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/register'),
             child: const Text(
-              'Fale com o RH',
+              'Criar conta',
               style: TextStyle(
                 fontSize: 13,
                 color: _purple,

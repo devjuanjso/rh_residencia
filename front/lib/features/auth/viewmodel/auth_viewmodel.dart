@@ -42,6 +42,35 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> register({
+    required String username,
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String role,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _authService.register(
+        username: username,
+        email: email,
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
+        role: role,
+      );
+      // após criar a conta, autentica automaticamente
+      await login(username, password);
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   Future<void> loadUserFromStorage() async {
     final token = await _storage.getToken();
     if (token == null) return;
